@@ -564,7 +564,7 @@ body {
     </div>
     <div class="footer-separator"></div>
     <div class="footer-section">
-        <span class="footer-version" id="footer-version" title="Versionsschema: Jahr.Push.Iteration">v26.2.1</span>
+        <span class="footer-version" id="footer-version" title="Versionsschema: Jahr.Push.Iteration">v26.3.1</span>
     </div>
 </footer>
 
@@ -576,7 +576,7 @@ body {
 // Versionsschema: Jahr.Push.Iteration
 // =================================================================
 
-const APP_VERSION = '26.2.1';
+const APP_VERSION = '26.3.1';
 const APP_AUTHOR_URL = 'https://www.michael-radeck.de';
 
 const i18n = {
@@ -627,7 +627,7 @@ Dieser Viewer dient der **distraktionsfreien Darstellung** von Markdown-Dokument
 - **Acht Design-Varianten** zur ergonomischen Anpassung (Hell, Dunkel, Sepia, Akademisch, Solarized, Nord, Terminal, Hochkontrast)
 - **Sprachumschaltung** Deutsch / Englisch über die Flaggen rechts oben
 - **Info-Button** zur Anzeige dieser Übersicht
-- **Neu-Button** zur Erstellung leerer Markdown-Dokumente (Strg+N)
+- **Neu-Button** zur Erstellung leerer Markdown-Dokumente (Strg+N); die erste Überschrift wird beim Speichern als Dateinamen-Vorschlag übernommen
 - **HTML-Paste-Konvertierung** — eingefügter Webseiteninhalt mit Tabellen, Listen und Formatierungen wird automatisch in Markdown übersetzt
 - **Live-Editor** mit synchronem bidirektionalen Scroll zwischen Quelltext und Vorschau
 - **Speicherung** zurück in die Originaldatei via *File System Access API*
@@ -723,7 +723,7 @@ This viewer provides a **distraction-free presentation** of Markdown documents d
 - **Eight design variants** for ergonomic adaptation (Light, Dark, Sepia, Academic, Solarized, Nord, Terminal, High-contrast)
 - **Language switching** German / English via the flags in the upper right
 - **Info button** showing this overview
-- **New button** for creating empty Markdown documents (Ctrl+N)
+- **New button** for creating empty Markdown documents (Ctrl+N); the first heading becomes the suggested filename when saving
 - **HTML paste conversion** — web content with tables, lists, and formatting is automatically translated into Markdown when pasted
 - **Live editor** with synchronised bidirectional scrolling between source and preview
 - **Saving** back to the original file via the *File System Access API*
@@ -999,14 +999,34 @@ waitForLibraries(function() {
         }
     }
 
+    // Aus erster Markdown-H1-Überschrift einen filesystem-tauglichen
+    // Dateinamen ableiten (für showSaveFilePicker bei neuen Dokumenten).
+    function deriveFilenameFromContent(text) {
+        const match = text.match(/^#\s+(.+?)$/m);
+        if (!match) return null;
+        let title = match[1].trim()
+            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')   // Markdown-Links → reiner Text
+            .replace(/[*_`~]/g, '')                     // Emphasis-Marker entfernen
+            .replace(/[\\\/:*?"<>|]/g, '-')             // filesystem-unsichere Zeichen
+            .replace(/\s+/g, ' ').trim();
+        if (title.length > 100) title = title.substring(0, 100).trim();
+        return title || null;
+    }
+
     async function saveFile() {
         const text = editorTextarea.value;
 
         // Wenn neue Datei ohne Handle: Speicherdialog öffnen
         if (!currentFileHandle && window.showSaveFilePicker) {
+            // Titel aus erster H1 als Dateinamen-Vorschlag, falls vom Default abweichend
+            let suggestedName = currentFileName || 'document.md';
+            const titleFromContent = deriveFilenameFromContent(text);
+            if (titleFromContent && titleFromContent !== i18n[currentLang].newFileTitle) {
+                suggestedName = titleFromContent + '.md';
+            }
             try {
                 currentFileHandle = await window.showSaveFilePicker({
-                    suggestedName: currentFileName || 'document.md',
+                    suggestedName: suggestedName,
                     types: [{
                         description: 'Markdown',
                         accept: { 'text/markdown': ['.md', '.markdown'] }

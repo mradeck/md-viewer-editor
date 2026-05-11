@@ -7,6 +7,23 @@ Das Projekt folgt einer eigenen Versionierung im Format `Jahr.Push.Iteration` (s
 
 ---
 
+## [26.3.1] – 2026-05-11
+
+Dritter GitHub-Push.
+
+### Hinzugefügt
+- **Titel als Dateinamen-Vorschlag**: Beim erstmaligen Speichern eines neu angelegten Dokuments wird die erste Markdown-H1-Überschrift extrahiert, von Formatierung und filesystem-unsicheren Zeichen bereinigt und als Vorschlag in den Speicherdialog (`showSaveFilePicker`) eingesetzt. Ist die Überschrift unverändert (`Neues Dokument` / `New document`), bleibt der Fallback `unbenannt.md` / `untitled.md` erhalten.
+- Neue Helper-Funktion `deriveFilenameFromContent(text)` zur Titel-Extraktion: behandelt Markdown-Links (`[Text](url)` → Text), entfernt Emphasis-Marker (`*`, `_`, `` ` ``, `~`), ersetzt filesystem-unsichere Zeichen (`/ \ : * ? " < > |`) durch `-`, verdichtet Whitespace und begrenzt die Länge auf 100 Zeichen.
+
+### Geändert
+- `saveFile()` greift bei fehlendem `FileHandle` auf den abgeleiteten Titel zurück; der Speicherort bleibt im Dialog frei wählbar, der Dateiname kann dort weiterhin überschrieben werden.
+- Eingebauter Info-Text (DE/EN) erwähnt die neue Titel-zu-Dateiname-Logik.
+
+### Vorgehen
+- Build erfolgte über chirurgische Eingriffe via Python-Update-Skript, ausgeführt per `osascript` direkt auf dem Mac-Filesystem — kein vollständiges Überschreiben der HTML-Datei.
+
+---
+
 ## [26.2.1] – 2026-05-11
 
 Zweiter GitHub-Push. Konsolidiert die lokalen Iterationen seit `26.1.1`.
@@ -68,5 +85,5 @@ Initiale Veröffentlichung mit vollständigem Funktionsumfang.
 
 ## Erwartete Folgeversionen
 
-- **26.3.x** — nächster GitHub-Push
+- **26.4.x** — nächster GitHub-Push
 - **27.x.x** — Versionssprung mit Jahreswechsel

@@ -1,6 +1,6 @@
 # MD-Viewer
 
-**Aktuelle Version: v26.2.1**
+**Aktuelle Version: v26.3.1**
 
 Single-File Markdown-Betrachter und -Editor mit Drag-&-Drop-Schnittstelle, Live-Editor mit synchronem Scroll, zweisprachiger Oberfläche, HTML→Markdown-Konvertierung beim Einfügen und mehreren Design-Varianten. Vollständig offline-fähig nach erstem Laden, ohne Build-Schritt, ohne Server, ohne Telemetrie.
 
@@ -13,7 +13,7 @@ Die Anwendung folgt dem Vorbild des [edge-md-viewer](https://github.com/0xedgele
 ## Funktionsumfang
 
 - **Drag & Drop** beliebiger Markdown-Dateien (`.md`, `.markdown`, `.mdown`, `.mkd`, `.txt`) — sowohl auf die zentrale Dropzone als auch global über das Browserfenster
-- **Neu-Button** (Strg/Cmd+N) zur Erstellung leerer Markdown-Dokumente; das erste Speichern öffnet einen Speicherdialog
+- **Neu-Button** (Strg/Cmd+N) zur Erstellung leerer Markdown-Dokumente; das erste Speichern öffnet einen Speicherdialog, wobei die erste Markdown-Überschrift als Dateinamen-Vorschlag übernommen wird
 - **HTML→Markdown-Konvertierung beim Einfügen** — Inhalt aus Webseiten (Tabellen, Listen, Überschriften, Hyperlinks, Fettungen, Code-Blöcke) wird beim Paste automatisch in GitHub-Flavored-Markdown übersetzt; Plain-Text bleibt unverändert
 - **Acht Design-Varianten** mit Persistierung im `localStorage`:
   - *Hell – Stone* (warmes Beige, Source Serif)
