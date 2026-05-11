@@ -1,18 +1,20 @@
 # MD-Viewer
 
-**Aktuelle Version: v26.1.1**
+**Aktuelle Version: v26.2.1**
 
-Single-File Markdown-Betrachter und -Editor mit Drag-&-Drop-Schnittstelle, Live-Editor mit synchronem Scroll, zweisprachiger Oberfläche und mehreren Design-Varianten. Vollständig offline-fähig nach erstem Laden, ohne Build-Schritt, ohne Server, ohne Telemetrie.
+Single-File Markdown-Betrachter und -Editor mit Drag-&-Drop-Schnittstelle, Live-Editor mit synchronem Scroll, zweisprachiger Oberfläche, HTML→Markdown-Konvertierung beim Einfügen und mehreren Design-Varianten. Vollständig offline-fähig nach erstem Laden, ohne Build-Schritt, ohne Server, ohne Telemetrie.
 
 ---
 
 ## Konzeption
 
-Die Anwendung folgt dem Vorbild des [edge-md-viewer](https://github.com/0xedgelessblade/edge-md-viewer) (Single HTML, zero Build, offline-fähig) und ergänzt diesen um eine zentrale Drop-Fläche im Stil typischer GAEB-Viewer, ein erweitertes Themen-System sowie eine bidirektionale Editor-Vorschau-Synchronisation.
+Die Anwendung folgt dem Vorbild des [edge-md-viewer](https://github.com/0xedgelessblade/edge-md-viewer) (Single HTML, zero Build, offline-fähig) und ergänzt diesen um eine zentrale Drop-Fläche im Stil typischer GAEB-Viewer, ein erweitertes Themen-System, bidirektionale Editor-Vorschau-Synchronisation sowie eine automatische Erkennung von Tabellen und anderen Strukturen beim Einfügen aus Webseiten.
 
 ## Funktionsumfang
 
 - **Drag & Drop** beliebiger Markdown-Dateien (`.md`, `.markdown`, `.mdown`, `.mkd`, `.txt`) — sowohl auf die zentrale Dropzone als auch global über das Browserfenster
+- **Neu-Button** (Strg/Cmd+N) zur Erstellung leerer Markdown-Dokumente; das erste Speichern öffnet einen Speicherdialog
+- **HTML→Markdown-Konvertierung beim Einfügen** — Inhalt aus Webseiten (Tabellen, Listen, Überschriften, Hyperlinks, Fettungen, Code-Blöcke) wird beim Paste automatisch in GitHub-Flavored-Markdown übersetzt; Plain-Text bleibt unverändert
 - **Acht Design-Varianten** mit Persistierung im `localStorage`:
   - *Hell – Stone* (warmes Beige, Source Serif)
   - *Dunkel – Onyx* (Anthrazit-Dunkelmodus)
@@ -30,7 +32,7 @@ Die Anwendung folgt dem Vorbild des [edge-md-viewer](https://github.com/0xedgele
 - **HTML-Export** als eigenständiges Dokument mit eingebettetem CSS
 - **Mathematik-Rendering** über KaTeX (`$…$` inline, `$$…$$` Block)
 - **Code-Syntaxhervorhebung** über highlight.js
-- **Statusleiste** mit Dateiname, aktuellem Datum, Versionsnummer und Autorenlink
+- **Statusleiste** mit Dateiname, Dirty-State-Anzeige für ungespeicherte Dateien, aktuellem Datum, Versionsnummer und Autorenlink
 - **Druckansicht** mit automatisch ausgeblendeter Toolbar und Statusleiste
 
 ## Tastenkürzel
@@ -38,6 +40,7 @@ Die Anwendung folgt dem Vorbild des [edge-md-viewer](https://github.com/0xedgele
 | Kürzel       | Funktion                          |
 |--------------|-----------------------------------|
 | `Strg/Cmd+O` | Datei öffnen                      |
+| `Strg/Cmd+N` | Neue Datei anlegen                |
 | `Strg/Cmd+S` | Speichern                         |
 | `Strg/Cmd+E` | Editor öffnen/schließen           |
 | `Esc`        | Editor schließen                  |
@@ -64,12 +67,14 @@ Die Versionsnummer wird an drei Stellen geführt und muss bei Änderungen konsis
 
 Eine einzelne HTML-Datei ohne Build-Schritt. Folgende externe Bibliotheken werden über `cdn.jsdelivr.net` nachgeladen:
 
-| Bibliothek    | Version  | Zweck                          |
-|---------------|----------|--------------------------------|
-| marked.js     | 12.0.2   | Markdown-Parser (GFM)          |
-| DOMPurify     | 3.0.11   | XSS-Sanitizer                  |
-| highlight.js  | 11.9.0   | Code-Syntax-Highlighting       |
-| KaTeX         | 0.16.10  | Mathematik-Rendering           |
+| Bibliothek            | Version  | Zweck                          |
+|-----------------------|----------|--------------------------------|
+| marked.js             | 12.0.2   | Markdown-Parser (GFM)          |
+| DOMPurify             | 3.0.11   | XSS-Sanitizer                  |
+| highlight.js          | 11.9.0   | Code-Syntax-Highlighting       |
+| KaTeX                 | 0.16.10  | Mathematik-Rendering           |
+| turndown              | 7.2.0    | HTML→Markdown beim Paste       |
+| turndown-plugin-gfm   | 1.0.2    | GFM-Tabellen für Turndown      |
 
 Sämtliche Verarbeitung erfolgt clientseitig; keine Daten werden an externe Server übertragen.
 
@@ -93,6 +98,7 @@ md-viewer-editor/
 ├── index.html                   Weiterleitung für GitHub Pages
 ├── README.md                    Diese Datei
 ├── CHANGELOG.md                 Versionshistorie
+├── CONTRIBUTING.md              Release-Prozess & Versionierungsregeln
 ├── LICENSE                      MIT-Lizenz
 ├── .gitignore                   Auszuschließende Dateien
 ├── .github/
@@ -105,7 +111,7 @@ md-viewer-editor/
 ## Bekannte Einschränkungen
 
 - Die *File System Access API* steht in Firefox und Safari aktuell nicht zur Verfügung; Speicherung erfolgt dort über Download-Dialog.
-- KaTeX, highlight.js und marked.js werden aus dem CDN nachgeladen; ein erster Aufruf erfordert Netzwerkzugriff. Anschließend können die Bibliotheken aus dem Browser-Cache offline bedient werden.
+- Externe Bibliotheken werden aus dem CDN nachgeladen; ein erster Aufruf erfordert Netzwerkzugriff. Anschließend können sie aus dem Browser-Cache offline bedient werden.
 - Bei restriktiven Content-Security-Policies oder Adblockern, die `cdn.jsdelivr.net` blockieren, erscheint nach ca. 10 Sekunden eine sprechende Fehlermeldung.
 
 ## Mitwirkende

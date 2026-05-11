@@ -7,6 +7,30 @@ Das Projekt folgt einer eigenen Versionierung im Format `Jahr.Push.Iteration` (s
 
 ---
 
+## [26.2.1] – 2026-05-11
+
+Zweiter GitHub-Push. Konsolidiert die lokalen Iterationen seit `26.1.1`.
+
+### Hinzugefügt
+- **„Neu"/„New"-Button** rechts neben „Öffnen" zur Erstellung leerer Markdown-Dokumente
+- Tastenkürzel `Strg/Cmd + N` für neue Dateien
+- Automatisches Öffnen des Editors beim Anlegen eines neuen Dokuments mit vorbereitetem Template
+- Dirty-State-Anzeige in der Fußzeile (`unbenannt.md · ungespeichert` in Akzentfarbe) für ungespeicherte neue Dateien
+- **HTML→Markdown-Konvertierung beim Einfügen**: Aus Webseiten oder anderen HTML-Quellen kopierte Inhalte (Tabellen, Listen, Überschriften, Hyperlinks, Fettungen, Code-Blöcke) werden automatisch in GitHub-Flavored-Markdown übersetzt
+- Integration von `turndown@7.2.0` und `turndown-plugin-gfm@1.0.2` als CDN-Bibliotheken
+- Toast-Benachrichtigung „HTML als Markdown eingefügt" / „HTML inserted as Markdown" beim erfolgreichen Paste-Conversion-Vorgang
+
+### Geändert
+- `saveFile()` nutzt `showSaveFilePicker` als Erstspeicher-Dialog, sobald kein FileHandle vorhanden ist (typisch bei „Neu" oder Info-Dokument)
+- Drop-Zone-Hinweis erweitert um `Strg+N` für neue Dateien
+- Eingebauter Info-Text und README durchgängig auf den neuen Funktionsstand aktualisiert
+
+### Technisch
+- Plain-Text-Paste verbleibt unverändert (Heuristik prüft auf strukturelle HTML-Tags vor Konvertierung)
+- Fehlertolerante Implementierung: scheitert die HTML→MD-Konvertierung, fällt das Verhalten automatisch auf den Standard-Paste des Browsers zurück
+
+---
+
 ## [26.1.1] – 2026-05-11
 
 Initiale Veröffentlichung mit vollständigem Funktionsumfang.
@@ -44,5 +68,5 @@ Initiale Veröffentlichung mit vollständigem Funktionsumfang.
 
 ## Erwartete Folgeversionen
 
-- **26.2.x** — geplante nächste Push-Runde (Themen, Funktionserweiterungen, Bugfixes)
+- **26.3.x** — nächster GitHub-Push
 - **27.x.x** — Versionssprung mit Jahreswechsel

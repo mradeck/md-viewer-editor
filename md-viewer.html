@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MD-Viewer – Markdown-Betrachter</title>
 
-<!-- Externe Bibliotheken: marked.js (Parser), DOMPurify (Sanitizer), KaTeX (Mathematik), highlight.js (Code) -->
+<!-- Externe Bibliotheken -->
 <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.11/dist/purify.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.9.0/highlight.min.js" crossorigin="anonymous"></script>
@@ -13,11 +13,12 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css" crossorigin="anonymous">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js" crossorigin="anonymous"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+<!-- HTML→Markdown-Konvertierung beim Einfügen -->
+<script src="https://cdn.jsdelivr.net/npm/turndown@7.2.0/dist/turndown.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/turndown-plugin-gfm@1.0.2/dist/turndown-plugin-gfm.js" crossorigin="anonymous"></script>
 
 <style>
-/* ============================================================
-   DESIGN-TOKENS
-   ============================================================ */
+/* DESIGN-TOKENS */
 :root,
 [data-theme="hell"] {
     --bg-app: #f5f3ef; --bg-panel: #ffffff; --bg-elev: #faf8f5;
@@ -56,8 +57,7 @@
     --fg-primary: #000000; --fg-secondary: #2a2a2a; --fg-muted: #666666;
     --accent: #8b0000; --accent-soft: rgba(139, 0, 0, 0.08);
     --border: #d5d5d0; --border-strong: #a5a5a0;
-    --shadow: 0 1px 2px rgba(0,0,0,0.05);
-    --code-bg: #f0f0eb;
+    --shadow: 0 1px 2px rgba(0,0,0,0.05); --code-bg: #f0f0eb;
     --font-body: "Computer Modern Serif", "Latin Modern Roman", "Cambria", "Times New Roman", serif;
     --max-width: 680px; --line-height: 1.65;
 }
@@ -98,9 +98,6 @@
     --shadow: none; --code-bg: #f0f0f0;
 }
 
-/* ============================================================
-   GLOBAL RESET & GRUNDLAYOUT
-   ============================================================ */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; overflow: hidden; }
 body {
@@ -112,9 +109,7 @@ body {
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* ============================================================
-   TOOLBAR
-   ============================================================ */
+/* TOOLBAR */
 .toolbar {
     position: fixed; top: 0; left: 0; right: 0; height: 56px;
     background: var(--bg-panel); border-bottom: 1px solid var(--border);
@@ -123,11 +118,9 @@ body {
     transition: transform 0.25s ease, background-color 0.3s ease;
 }
 .toolbar.hidden { transform: translateY(-100%); }
-
 .brand {
     display: flex; align-items: center; gap: 10px;
-    font-weight: 600; font-size: 15px; color: var(--fg-primary);
-    margin-right: 8px;
+    font-weight: 600; font-size: 15px; color: var(--fg-primary); margin-right: 8px;
 }
 .brand-mark {
     width: 28px; height: 28px; border-radius: 6px;
@@ -151,7 +144,6 @@ body {
 }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn:disabled:hover { background: transparent; border-color: transparent; color: var(--fg-secondary); }
-
 .btn.btn-icon { padding: 7px; min-width: 32px; justify-content: center; }
 
 .toolbar-spacer { flex: 1; }
@@ -166,9 +158,7 @@ body {
     background-repeat: no-repeat; background-position: right 10px center;
 }
 
-/* ============================================================
-   SPRACHUMSCHALTER
-   ============================================================ */
+/* SPRACHUMSCHALTER */
 .lang-switcher {
     display: inline-flex; gap: 3px; margin-left: 4px;
     padding: 3px; background: var(--bg-elev);
@@ -182,14 +172,10 @@ body {
     display: block; position: relative;
 }
 .lang-flag:hover { opacity: 0.9; transform: translateY(-1px); }
-.lang-flag.active {
-    opacity: 1; box-shadow: 0 0 0 2px var(--accent); transform: none;
-}
+.lang-flag.active { opacity: 1; box-shadow: 0 0 0 2px var(--accent); transform: none; }
 .lang-flag svg { display: block; width: 100%; height: 100%; }
 
-/* ============================================================
-   DROP-ZONE
-   ============================================================ */
+/* DROP-ZONE */
 .dropzone-wrapper {
     position: fixed; inset: 56px 0 28px 0;
     display: flex; align-items: center; justify-content: center;
@@ -257,9 +243,7 @@ body {
     color: var(--accent);
 }
 
-/* ============================================================
-   VIEWER
-   ============================================================ */
+/* VIEWER */
 .viewer-wrapper {
     position: fixed; inset: 56px 0 28px 0;
     overflow-y: auto; background: var(--bg-app);
@@ -270,7 +254,6 @@ body {
     max-width: var(--max-width); margin: 0 auto;
     padding: 64px 32px 96px; color: var(--fg-primary);
 }
-
 .viewer h1, .viewer h2, .viewer h3, .viewer h4, .viewer h5, .viewer h6 {
     font-family: var(--font-ui); font-weight: 700; color: var(--fg-primary);
     margin-top: 2em; margin-bottom: 0.6em;
@@ -278,12 +261,9 @@ body {
 }
 [data-theme="akademisch"] .viewer h1,
 [data-theme="akademisch"] .viewer h2,
-[data-theme="akademisch"] .viewer h3 {
-    font-family: var(--font-body); font-weight: 600;
-}
+[data-theme="akademisch"] .viewer h3 { font-family: var(--font-body); font-weight: 600; }
 .viewer h1 {
-    font-size: 2.2em;
-    border-bottom: 1px solid var(--border);
+    font-size: 2.2em; border-bottom: 1px solid var(--border);
     padding-bottom: 0.4em; margin-top: 0;
 }
 .viewer h2 { font-size: 1.6em; }
@@ -301,8 +281,7 @@ body {
 .viewer li { margin-bottom: 0.3em; }
 .viewer li > ul, .viewer li > ol { margin-top: 0.3em; }
 .viewer blockquote {
-    border-left: 3px solid var(--accent);
-    background: var(--accent-soft);
+    border-left: 3px solid var(--accent); background: var(--accent-soft);
     padding: 0.8em 1.2em; margin: 1.2em 0;
     color: var(--fg-secondary);
     border-radius: 0 6px 6px 0; font-style: italic;
@@ -335,9 +314,7 @@ body {
 }
 .viewer input[type="checkbox"] { margin-right: 6px; }
 
-/* ============================================================
-   EDITOR-PANEL
-   ============================================================ */
+/* EDITOR-PANEL */
 .editor-panel {
     position: fixed; top: 56px; right: 0; bottom: 28px;
     width: 50%; max-width: 720px;
@@ -362,7 +339,6 @@ body {
     font-family: var(--font-mono); font-size: 14px;
     line-height: 1.65; padding: 24px 32px; resize: none;
 }
-
 .sync-indicator {
     display: inline-flex; align-items: center; gap: 4px;
     font-size: 11px; color: var(--fg-muted);
@@ -374,9 +350,7 @@ body {
     background: var(--accent); opacity: 0.6;
 }
 
-/* ============================================================
-   FUßZEILE (Statuszeile)
-   ============================================================ */
+/* FUSSZEILE */
 .footer {
     position: fixed;
     bottom: 0; left: 0; right: 0;
@@ -384,11 +358,9 @@ body {
     background: var(--bg-panel);
     border-top: 1px solid var(--border);
     display: flex; align-items: center;
-    padding: 0 14px;
-    gap: 10px;
+    padding: 0 14px; gap: 10px;
     font-family: var(--font-ui);
-    font-size: 11px;
-    color: var(--fg-muted);
+    font-size: 11px; color: var(--fg-muted);
     z-index: 95;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
@@ -396,22 +368,14 @@ body {
 .footer-spacer { flex: 1; }
 .footer-filename {
     font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--fg-secondary);
+    font-size: 11px; color: var(--fg-secondary);
     max-width: 50%;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .footer-filename.empty { color: var(--fg-muted); font-style: italic; font-family: var(--font-ui); }
-.footer-separator {
-    width: 1px; height: 14px;
-    background: var(--border);
-    opacity: 0.7;
-}
-.footer-link {
-    color: var(--accent);
-    text-decoration: none;
-    transition: opacity 0.15s ease;
-}
+.footer-filename.unsaved { color: var(--accent); }
+.footer-separator { width: 1px; height: 14px; background: var(--border); opacity: 0.7; }
+.footer-link { color: var(--accent); text-decoration: none; transition: opacity 0.15s ease; }
 .footer-link:hover { text-decoration: underline; }
 .footer-version {
     font-family: var(--font-mono);
@@ -419,14 +383,11 @@ body {
     background: var(--bg-elev);
     border: 1px solid var(--border);
     border-radius: 3px;
-    font-size: 10px;
-    color: var(--fg-secondary);
+    font-size: 10px; color: var(--fg-secondary);
     letter-spacing: 0.02em;
 }
 
-/* ============================================================
-   TOAST
-   ============================================================ */
+/* TOAST */
 .toast {
     position: fixed; bottom: 40px; left: 50%;
     transform: translateX(-50%) translateY(120%);
@@ -438,21 +399,15 @@ body {
 }
 .toast.show { transform: translateX(-50%) translateY(0); }
 
-/* ============================================================
-   SCROLLBARS
-   ============================================================ */
+/* SCROLLBARS */
 .viewer-wrapper::-webkit-scrollbar,
 .editor-textarea::-webkit-scrollbar { width: 10px; height: 10px; }
 .viewer-wrapper::-webkit-scrollbar-track,
 .editor-textarea::-webkit-scrollbar-track { background: transparent; }
 .viewer-wrapper::-webkit-scrollbar-thumb,
-.editor-textarea::-webkit-scrollbar-thumb {
-    background: var(--border-strong); border-radius: 5px;
-}
+.editor-textarea::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 5px; }
 
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
+/* RESPONSIVE */
 @media (max-width: 768px) {
     .toolbar { padding: 0 12px; gap: 6px; }
     .brand { font-size: 14px; }
@@ -466,9 +421,6 @@ body {
     .footer-link { display: none; }
 }
 
-/* ============================================================
-   DRUCK
-   ============================================================ */
 @media print {
     .toolbar, .dropzone-wrapper, .editor-panel, .toast, .footer { display: none !important; }
     .viewer-wrapper { position: static; inset: auto; overflow: visible; }
@@ -479,9 +431,6 @@ body {
 </head>
 <body data-theme="hell">
 
-<!-- ============================================================
-     TOOLBAR
-     ============================================================ -->
 <header class="toolbar" id="toolbar">
     <div class="brand">
         <div class="brand-mark">MD</div>
@@ -493,6 +442,11 @@ body {
     <button class="btn" id="btn-open" data-i18n-title="titleOpen" title="Datei öffnen (Strg+O)">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l2-3h4l2 3h10v13H3z"/></svg>
         <span class="btn-label" data-i18n="btnOpen">Öffnen</span>
+    </button>
+
+    <button class="btn" id="btn-new" data-i18n-title="titleNew" title="Neue Datei erstellen (Strg+N)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        <span class="btn-label" data-i18n="btnNew">Neu</span>
     </button>
 
     <button class="btn" id="btn-edit" data-i18n-title="titleEdit" title="Bearbeitungsmodus umschalten (Strg+E)" disabled>
@@ -557,9 +511,6 @@ body {
     </div>
 </header>
 
-<!-- ============================================================
-     DROP-ZONE
-     ============================================================ -->
 <main class="dropzone-wrapper" id="dropzone-wrapper">
     <div class="dropzone" id="dropzone">
         <svg class="dropzone-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -578,20 +529,14 @@ body {
             <span class="format-tag">.mdown</span>
             <span class="format-tag">.txt</span>
         </div>
-        <div class="dropzone-hint" data-i18n="dropzoneHint">↑ Tipp: Tastenkürzel Strg+O zum Öffnen</div>
+        <div class="dropzone-hint" data-i18n="dropzoneHint">↑ Tipp: Tastenkürzel Strg+O zum Öffnen, Strg+N für neue Datei</div>
     </div>
 </main>
 
-<!-- ============================================================
-     VIEWER
-     ============================================================ -->
 <section class="viewer-wrapper hidden" id="viewer-wrapper">
     <article class="viewer" id="viewer"></article>
 </section>
 
-<!-- ============================================================
-     EDITOR-PANEL
-     ============================================================ -->
 <aside class="editor-panel" id="editor-panel">
     <div class="editor-header">
         <span>
@@ -603,21 +548,12 @@ body {
     <textarea class="editor-textarea" id="editor-textarea" spellcheck="false"></textarea>
 </aside>
 
-<!-- ============================================================
-     GLOBAL DROP OVERLAY
-     ============================================================ -->
 <div class="global-drop-overlay" id="global-drop">
     <div class="global-drop-message" data-i18n="globalDropMessage">📥 Datei zum Öffnen ablegen</div>
 </div>
 
-<!-- ============================================================
-     TOAST
-     ============================================================ -->
 <div class="toast" id="toast"></div>
 
-<!-- ============================================================
-     FUSSZEILE
-     ============================================================ -->
 <footer class="footer" id="footer">
     <div class="footer-section footer-filename empty" id="footer-filename" data-i18n="footerNoFile">— keine Datei geladen —</div>
     <div class="footer-spacer"></div>
@@ -628,32 +564,28 @@ body {
     </div>
     <div class="footer-separator"></div>
     <div class="footer-section">
-        <span class="footer-version" id="footer-version" title="Versionsschema: Jahr.Push.Iteration">v26.1.1</span>
+        <span class="footer-version" id="footer-version" title="Versionsschema: Jahr.Push.Iteration">v26.2.1</span>
     </div>
 </footer>
 
-<!-- Datei-Input -->
 <input type="file" id="file-input" accept=".md,.markdown,.mdown,.mkd,.txt" style="display:none;">
 
 <script>
 // =================================================================
 // MD-Viewer – Single-File Markdown-Betrachter
 // Versionsschema: Jahr.Push.Iteration
-//   Jahr:      Kalenderjahr (zweistellig, hier 26 = 2026)
-//   Push:      laufende Nummer der GitHub-Pushes innerhalb des Jahres
-//   Iteration: feinere Änderungen zwischen zwei Pushes
 // =================================================================
 
-const APP_VERSION = '26.1.1';
+const APP_VERSION = '26.2.1';
 const APP_AUTHOR_URL = 'https://www.michael-radeck.de';
 
-// ===== I18N =====
 const i18n = {
     de: {
         brand: 'MD-Viewer',
-        btnOpen: 'Öffnen', btnEdit: 'Bearbeiten', btnSave: 'Speichern',
+        btnOpen: 'Öffnen', btnNew: 'Neu', btnEdit: 'Bearbeiten', btnSave: 'Speichern',
         btnExport: 'Export', btnClose: 'Schließen',
         titleOpen: 'Datei öffnen (Strg+O)',
+        titleNew: 'Neue Datei erstellen (Strg+N)',
         titleEdit: 'Bearbeitungsmodus umschalten (Strg+E)',
         titleSave: 'Speichern (Strg+S)',
         titleExport: 'Als HTML exportieren',
@@ -663,7 +595,7 @@ const i18n = {
         titleLangDE: 'Deutsch', titleLangEN: 'English',
         dropzoneTitle: 'Markdown-Datei hierher ziehen',
         dropzoneSubtitle: 'Alternativ kann durch einen Klick in diesen Bereich eine Datei aus dem lokalen Dateisystem ausgewählt werden. Sämtliche Verarbeitung erfolgt ausschließlich lokal im Browser; keinerlei Daten verlassen den Rechner.',
-        dropzoneHint: '↑ Tipp: Tastenkürzel Strg+O zum Öffnen',
+        dropzoneHint: '↑ Tipp: Tastenkürzel Strg+O zum Öffnen, Strg+N für neue Datei',
         editorHeader: 'Markdown-Quelltext',
         editorClose: 'Schließen',
         syncActive: 'Scroll-Sync',
@@ -673,18 +605,18 @@ const i18n = {
         toastExported: 'HTML exportiert',
         toastSaveFailed: 'Speichern fehlgeschlagen: ',
         toastUnsupported: 'Nicht unterstütztes Format: ',
+        toastPasteConverted: 'HTML als Markdown eingefügt',
         fileInfoDemo: 'Info-Dokument',
         footerNoFile: '— keine Datei geladen —',
+        newFileDefault: 'unbenannt.md',
+        newFileTitle: 'Neues Dokument',
+        unsavedLabel: 'ungespeichert',
         renderError: 'Rendering-Bibliotheken noch nicht geladen. Bitte erneut versuchen.',
         loadingError: '<strong>Bibliotheken konnten nicht geladen werden.</strong><br>Die externen CDN-Ressourcen sind nicht erreichbar. Möglicherweise blockiert eine Firewall, ein Adblocker oder eine restriktive Content-Security-Policy den Zugriff auf <code>cdn.jsdelivr.net</code>.',
-        themeHell: 'Hell – Stone',
-        themeDunkel: 'Dunkel – Onyx',
-        themeSepia: 'Sepia – Pergament',
-        themeAkademisch: 'Akademisch – Paper',
-        themeSolarized: 'Solarized',
-        themeNord: 'Nord – Polar',
-        themeTerminal: 'Terminal – Mono',
-        themeHochkontrast: 'Hochkontrast',
+        themeHell: 'Hell – Stone', themeDunkel: 'Dunkel – Onyx',
+        themeSepia: 'Sepia – Pergament', themeAkademisch: 'Akademisch – Paper',
+        themeSolarized: 'Solarized', themeNord: 'Nord – Polar',
+        themeTerminal: 'Terminal – Mono', themeHochkontrast: 'Hochkontrast',
         demoMD: `# MD-Viewer – Funktionsübersicht (v${APP_VERSION})
 
 Dieser Viewer dient der **distraktionsfreien Darstellung** von Markdown-Dokumenten direkt im Browser. Die Anwendung läuft vollständig clientseitig; keine Daten werden an externe Server übertragen.
@@ -695,6 +627,8 @@ Dieser Viewer dient der **distraktionsfreien Darstellung** von Markdown-Dokument
 - **Acht Design-Varianten** zur ergonomischen Anpassung (Hell, Dunkel, Sepia, Akademisch, Solarized, Nord, Terminal, Hochkontrast)
 - **Sprachumschaltung** Deutsch / Englisch über die Flaggen rechts oben
 - **Info-Button** zur Anzeige dieser Übersicht
+- **Neu-Button** zur Erstellung leerer Markdown-Dokumente (Strg+N)
+- **HTML-Paste-Konvertierung** — eingefügter Webseiteninhalt mit Tabellen, Listen und Formatierungen wird automatisch in Markdown übersetzt
 - **Live-Editor** mit synchronem bidirektionalen Scroll zwischen Quelltext und Vorschau
 - **Speicherung** zurück in die Originaldatei via *File System Access API*
 - **HTML-Export** als eigenständiges Dokument
@@ -708,17 +642,15 @@ Die Versionsnummer folgt dem Format \`Jahr.Push.Iteration\`:
 - **Push** — fortlaufende Nummer der GitHub-Pushes innerhalb des Jahres
 - **Iteration** — kleinere Änderungen zwischen zwei Pushes
 
-Bei jedem Push wird die Push-Zahl inkrementiert, die Iteration zurückgesetzt und sämtliche Dokumentation (README, CHANGELOG, dieses Info-Dokument) auf den aktuellen Funktionsstand gebracht.
+Bei jedem Push wird die Push-Zahl inkrementiert, die Iteration zurückgesetzt und sämtliche Dokumentation auf den aktuellen Funktionsstand gebracht.
 
-## Beispielhafte Darstellung
+## HTML-Paste-Konvertierung in der Praxis
 
-> Wissenschaftliche Texte profitieren von ruhiger Typographie und großzügigem Zeilenabstand. Die *Akademisch*-Variante orientiert sich an klassischen Journal-Layouts.
+Wird im Editor (Strg+E) Inhalt aus einer Webseite eingefügt — etwa eine mehrspaltige Tabelle —, erkennt der Viewer die HTML-Struktur und überführt sie in eine GitHub-Flavored-Markdown-Tabelle. Auch Überschriften, Listen, Hyperlinks, Fettungen und Code-Blöcke werden korrekt übernommen. Plain-Text-Inhalte bleiben unverändert.
 
 ### Mathematischer Ausdruck
 
 Der Satz des Pythagoras lautet: $a^2 + b^2 = c^2$.
-
-Eine zentrierte Formel:
 
 $$E = mc^2$$
 
@@ -726,7 +658,6 @@ $$E = mc^2$$
 
 \`\`\`python
 def fibonacci(n: int) -> int:
-    """Rekursive Berechnung der Fibonacci-Folge."""
     if n < 2:
         return n
     return fibonacci(n - 1) + fibonacci(n - 2)
@@ -741,23 +672,16 @@ def fibonacci(n: int) -> int:
 | Akademisch    | Reinweiß        | Computer Modern          |
 | Terminal      | Schwarz         | JetBrains Mono           |
 
-### Zur Demonstration des Scroll-Sync
-
-Das Editor-Overlay (rechts) und die Vorschau (links) scrollen proportional zueinander. Wer im Quelltext nach unten scrollt, sieht in der Vorschau den entsprechenden Bereich. Dies funktioniert in beide Richtungen.
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
 ---
 
 *Über die Schaltfläche „Schließen" gelangt man zurück zur Ablage-Fläche. Eine eigene Datei kann jederzeit per Drag & Drop oder über „Öffnen" geladen werden.*`
     },
     en: {
         brand: 'MD-Viewer',
-        btnOpen: 'Open', btnEdit: 'Edit', btnSave: 'Save',
+        btnOpen: 'Open', btnNew: 'New', btnEdit: 'Edit', btnSave: 'Save',
         btnExport: 'Export', btnClose: 'Close',
         titleOpen: 'Open file (Ctrl+O)',
+        titleNew: 'Create new file (Ctrl+N)',
         titleEdit: 'Toggle edit mode (Ctrl+E)',
         titleSave: 'Save (Ctrl+S)',
         titleExport: 'Export as HTML',
@@ -767,7 +691,7 @@ Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu 
         titleLangDE: 'German', titleLangEN: 'English',
         dropzoneTitle: 'Drop Markdown file here',
         dropzoneSubtitle: 'Alternatively, click this area to select a file from the local file system. All processing happens exclusively in the browser; no data ever leaves the device.',
-        dropzoneHint: '↑ Tip: Press Ctrl+O to open',
+        dropzoneHint: '↑ Tip: Ctrl+O to open, Ctrl+N for a new file',
         editorHeader: 'Markdown source',
         editorClose: 'Close',
         syncActive: 'Scroll-sync',
@@ -777,18 +701,18 @@ Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu 
         toastExported: 'HTML exported',
         toastSaveFailed: 'Save failed: ',
         toastUnsupported: 'Unsupported format: ',
+        toastPasteConverted: 'HTML inserted as Markdown',
         fileInfoDemo: 'Info document',
         footerNoFile: '— no file loaded —',
+        newFileDefault: 'untitled.md',
+        newFileTitle: 'New document',
+        unsavedLabel: 'unsaved',
         renderError: 'Rendering libraries not yet loaded. Please try again.',
         loadingError: '<strong>Libraries could not be loaded.</strong><br>The external CDN resources are unreachable. A firewall, ad blocker, or restrictive Content-Security-Policy may be blocking access to <code>cdn.jsdelivr.net</code>.',
-        themeHell: 'Light – Stone',
-        themeDunkel: 'Dark – Onyx',
-        themeSepia: 'Sepia – Parchment',
-        themeAkademisch: 'Academic – Paper',
-        themeSolarized: 'Solarized',
-        themeNord: 'Nord – Polar',
-        themeTerminal: 'Terminal – Mono',
-        themeHochkontrast: 'High contrast',
+        themeHell: 'Light – Stone', themeDunkel: 'Dark – Onyx',
+        themeSepia: 'Sepia – Parchment', themeAkademisch: 'Academic – Paper',
+        themeSolarized: 'Solarized', themeNord: 'Nord – Polar',
+        themeTerminal: 'Terminal – Mono', themeHochkontrast: 'High contrast',
         demoMD: `# MD-Viewer – Feature Overview (v${APP_VERSION})
 
 This viewer provides a **distraction-free presentation** of Markdown documents directly in the browser. The application runs entirely client-side; no data is transmitted to external servers.
@@ -799,6 +723,8 @@ This viewer provides a **distraction-free presentation** of Markdown documents d
 - **Eight design variants** for ergonomic adaptation (Light, Dark, Sepia, Academic, Solarized, Nord, Terminal, High-contrast)
 - **Language switching** German / English via the flags in the upper right
 - **Info button** showing this overview
+- **New button** for creating empty Markdown documents (Ctrl+N)
+- **HTML paste conversion** — web content with tables, lists, and formatting is automatically translated into Markdown when pasted
 - **Live editor** with synchronised bidirectional scrolling between source and preview
 - **Saving** back to the original file via the *File System Access API*
 - **HTML export** as a standalone document
@@ -812,17 +738,15 @@ The version number follows the format \`Year.Push.Iteration\`:
 - **Push** — sequential number of GitHub pushes within the year
 - **Iteration** — minor changes between two pushes
 
-On every push, the push counter is incremented, the iteration is reset, and all documentation (README, CHANGELOG, this info document) is brought in line with the current feature set.
+On every push, the push counter is incremented, the iteration is reset, and all documentation is brought in line with the current feature set.
 
-## Sample Presentation
+## HTML Paste Conversion in Practice
 
-> Scientific texts benefit from calm typography and generous line spacing. The *Academic* variant is modelled after classical journal layouts.
+When content from a webpage — for instance, a multi-column table — is pasted into the editor (Ctrl+E), the viewer recognises the HTML structure and converts it into a GitHub-Flavored-Markdown table. Headings, lists, hyperlinks, bold text, and code blocks are also preserved. Plain-text content remains unchanged.
 
 ### Mathematical Expression
 
 The Pythagorean theorem states: $a^2 + b^2 = c^2$.
-
-A centred formula:
 
 $$E = mc^2$$
 
@@ -830,7 +754,6 @@ $$E = mc^2$$
 
 \`\`\`python
 def fibonacci(n: int) -> int:
-    """Recursive computation of the Fibonacci sequence."""
     if n < 2:
         return n
     return fibonacci(n - 1) + fibonacci(n - 2)
@@ -845,21 +768,12 @@ def fibonacci(n: int) -> int:
 | Academic      | Pure white      | Computer Modern          |
 | Terminal      | Black           | JetBrains Mono           |
 
-### Demonstration of Scroll-Sync
-
-The editor overlay (right) and the preview (left) scroll proportionally to each other. Scrolling down in the source brings the corresponding area into view in the preview. This works in both directions.
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
 ---
 
 *The "Close" button returns to the drop area. A custom file can be loaded at any time via drag & drop or the "Open" button.*`
     }
 };
 
-// ===== Wartelogik =====
 function waitForLibraries(callback, attempts) {
     attempts = attempts || 0;
     if (typeof window.marked !== 'undefined' && typeof window.DOMPurify !== 'undefined') {
@@ -903,8 +817,10 @@ waitForLibraries(function() {
     let currentContent = '';
     let currentLang = 'de';
     let isDemoLoaded = false;
+    let isNewFile = false;
     let dragCounter = 0;
     let scrollSyncing = false;
+    let renderTimeout;
 
     if (window.marked) {
         marked.setOptions({
@@ -925,23 +841,23 @@ waitForLibraries(function() {
         footerVersion.textContent = 'v' + APP_VERSION;
         updateFooterDate();
     }
-
     function updateFooterDate() {
         const locale = currentLang === 'de' ? 'de-DE' : 'en-GB';
         footerDate.textContent = new Date().toLocaleDateString(locale, {
             year: 'numeric', month: '2-digit', day: '2-digit'
         });
     }
-
-    function setFooterFilename(name) {
-        if (name) {
-            footerFilename.textContent = name;
-            footerFilename.classList.remove('empty');
-            footerFilename.removeAttribute('data-i18n');
-        } else {
+    function setFooterFilename(name, opts) {
+        opts = opts || {};
+        footerFilename.classList.remove('empty', 'unsaved');
+        if (!name) {
             footerFilename.textContent = i18n[currentLang].footerNoFile;
             footerFilename.classList.add('empty');
             footerFilename.setAttribute('data-i18n', 'footerNoFile');
+        } else {
+            footerFilename.textContent = name;
+            footerFilename.removeAttribute('data-i18n');
+            if (opts.unsaved) footerFilename.classList.add('unsaved');
         }
     }
 
@@ -981,7 +897,6 @@ waitForLibraries(function() {
 
         try { localStorage.setItem(STORAGE_LANG_KEY, lang); } catch(e) {}
     }
-
     function loadSavedLanguage() {
         try {
             const saved = localStorage.getItem(STORAGE_LANG_KEY);
@@ -990,7 +905,6 @@ waitForLibraries(function() {
         const browserLang = (navigator.language || 'de').slice(0, 2).toLowerCase();
         return i18n[browserLang] ? browserLang : 'de';
     }
-
     document.querySelectorAll('.lang-flag').forEach(flag => {
         flag.addEventListener('click', () => applyLanguage(flag.getAttribute('data-lang')));
     });
@@ -1055,6 +969,7 @@ waitForLibraries(function() {
         }
         currentFileName = file.name;
         isDemoLoaded = false;
+        isNewFile = false;
         const text = await file.text();
         editorTextarea.value = text;
         renderMarkdown(text);
@@ -1086,20 +1001,49 @@ waitForLibraries(function() {
 
     async function saveFile() {
         const text = editorTextarea.value;
+
+        // Wenn neue Datei ohne Handle: Speicherdialog öffnen
+        if (!currentFileHandle && window.showSaveFilePicker) {
+            try {
+                currentFileHandle = await window.showSaveFilePicker({
+                    suggestedName: currentFileName || 'document.md',
+                    types: [{
+                        description: 'Markdown',
+                        accept: { 'text/markdown': ['.md', '.markdown'] }
+                    }]
+                });
+                currentFileName = currentFileHandle.name;
+            } catch(err) {
+                if (err.name === 'AbortError') return;
+                // Fallback unten
+            }
+        }
+
         if (currentFileHandle && currentFileHandle.createWritable) {
             try {
                 const writable = await currentFileHandle.createWritable();
                 await writable.write(text);
                 await writable.close();
+                isNewFile = false;
+                try {
+                    const file = await currentFileHandle.getFile();
+                    const kb = (file.size / 1024).toFixed(1);
+                    setFooterFilename(`${currentFileName} · ${kb} KB`);
+                } catch(e) {
+                    setFooterFilename(currentFileName);
+                }
                 showToast(i18n[currentLang].toastSaved);
             } catch(err) {
                 showToast(i18n[currentLang].toastSaveFailed + err.message);
             }
         } else {
+            // Download-Fallback (Firefox/Safari)
             const blob = new Blob([text], { type: 'text/markdown' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url; a.download = currentFileName || 'document.md'; a.click();
+            a.href = url;
+            a.download = currentFileName || 'document.md';
+            a.click();
             URL.revokeObjectURL(url);
             showToast(i18n[currentLang].toastDownloaded);
         }
@@ -1111,7 +1055,9 @@ waitForLibraries(function() {
         const blob = new Blob([html], { type: 'text/html' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url; a.download = (currentFileName || 'document').replace(/\.[^.]+$/, '') + '.html'; a.click();
+        a.href = url;
+        a.download = (currentFileName || 'document').replace(/\.[^.]+$/, '') + '.html';
+        a.click();
         URL.revokeObjectURL(url);
         showToast(i18n[currentLang].toastExported);
     }
@@ -1122,6 +1068,7 @@ waitForLibraries(function() {
     function loadInfoDocument() {
         const t = i18n[currentLang];
         isDemoLoaded = true;
+        isNewFile = false;
         currentFileHandle = null;
         currentFileName = '';
         editorTextarea.value = t.demoMD;
@@ -1129,6 +1076,86 @@ waitForLibraries(function() {
         setFooterFilename(t.fileInfoDemo);
         showViewer();
         enableFileActions(true);
+    }
+
+    // =================================================================
+    // NEU: leeres Dokument erstellen
+    // =================================================================
+    function newFile() {
+        const t = i18n[currentLang];
+        isDemoLoaded = false;
+        isNewFile = true;
+        currentFileHandle = null;
+        currentFileName = t.newFileDefault;
+
+        const template = `# ${t.newFileTitle}\n\n`;
+        editorTextarea.value = template;
+        renderMarkdown(template);
+        setFooterFilename(`${t.newFileDefault} · ${t.unsavedLabel}`, { unsaved: true });
+        showViewer();
+        enableFileActions(true);
+        editorPanel.classList.add('open');
+
+        setTimeout(() => {
+            editorTextarea.focus();
+            editorTextarea.setSelectionRange(template.length, template.length);
+        }, 280);
+    }
+
+    // =================================================================
+    // HTML → MARKDOWN beim Einfügen
+    //
+    // Aktiviert wird die Konvertierung nur, wenn die Zwischenablage
+    // text/html mit strukturierten Elementen (Tabellen, Listen, Über-
+    // schriften, Formatierungen) enthält. Reiner Plain-Text durchläuft
+    // weiterhin den Standard-Paste-Mechanismus des Browsers.
+    // =================================================================
+    function setupHTMLPaste() {
+        editorTextarea.addEventListener('paste', (e) => {
+            if (!window.TurndownService || !e.clipboardData) return;
+            const html = e.clipboardData.getData('text/html');
+            if (!html) return;
+
+            // Strukturmerkmal-Check
+            if (!/<(table|thead|tbody|tr|ul|ol|h[1-6]|pre|blockquote|strong|b\s|em|i\s|a\s|code|li)/i.test(html)) {
+                return;
+            }
+
+            try {
+                const turndownService = new TurndownService({
+                    headingStyle: 'atx',
+                    bulletListMarker: '-',
+                    codeBlockStyle: 'fenced',
+                    emDelimiter: '*',
+                    hr: '---'
+                });
+
+                if (window.turndownPluginGfm) {
+                    turndownService.use(window.turndownPluginGfm.gfm);
+                }
+
+                const markdown = turndownService.turndown(html).trim();
+                if (!markdown) return;
+
+                e.preventDefault();
+
+                const start = editorTextarea.selectionStart;
+                const end = editorTextarea.selectionEnd;
+                const before = editorTextarea.value.substring(0, start);
+                const after = editorTextarea.value.substring(end);
+                editorTextarea.value = before + markdown + after;
+                const newPos = start + markdown.length;
+                editorTextarea.setSelectionRange(newPos, newPos);
+
+                clearTimeout(renderTimeout);
+                renderTimeout = setTimeout(() => renderMarkdown(editorTextarea.value), 100);
+
+                showToast(i18n[currentLang].toastPasteConverted);
+            } catch(err) {
+                console.warn('HTML→MD-Konvertierung fehlgeschlagen, Standard-Paste verwendet:', err);
+                // preventDefault wurde nicht aufgerufen → Browser fügt Plain-Text ein
+            }
+        });
     }
 
     // =================================================================
@@ -1219,13 +1246,18 @@ waitForLibraries(function() {
     $('btn-edit').addEventListener('click', () => editorPanel.classList.toggle('open'));
     $('btn-editor-close').addEventListener('click', () => editorPanel.classList.remove('open'));
 
-    let renderTimeout;
     editorTextarea.addEventListener('input', () => {
         clearTimeout(renderTimeout);
         renderTimeout = setTimeout(() => renderMarkdown(editorTextarea.value), 250);
+        // Bei neuen/ungespeicherten Dateien Dirty-State markieren
+        if (isNewFile) {
+            const t = i18n[currentLang];
+            setFooterFilename(`${currentFileName} · ${t.unsavedLabel}`, { unsaved: true });
+        }
     });
 
     $('btn-open').addEventListener('click', openFilePicker);
+    $('btn-new').addEventListener('click', newFile);
     $('btn-save').addEventListener('click', saveFile);
     $('btn-export').addEventListener('click', exportAsHTML);
     $('btn-info').addEventListener('click', loadInfoDocument);
@@ -1234,6 +1266,7 @@ waitForLibraries(function() {
         currentFileName = '';
         currentContent = '';
         isDemoLoaded = false;
+        isNewFile = false;
         editorTextarea.value = '';
         viewer.innerHTML = '';
         setFooterFilename('');
@@ -1244,16 +1277,16 @@ waitForLibraries(function() {
     document.addEventListener('keydown', e => {
         const ctrl = e.ctrlKey || e.metaKey;
         if (ctrl && e.key === 'o') { e.preventDefault(); openFilePicker(); }
+        if (ctrl && e.key === 'n') { e.preventDefault(); newFile(); }
         if (ctrl && e.key === 's') { e.preventDefault(); if (currentContent) saveFile(); }
         if (ctrl && e.key === 'e') { e.preventDefault(); if (currentContent) editorPanel.classList.toggle('open'); }
         if (e.key === 'Escape') editorPanel.classList.remove('open');
     });
 
-    // =================================================================
     // INITIALISIERUNG
-    // =================================================================
     setupDragDrop();
     setupSyncScroll();
+    setupHTMLPaste();
     loadSavedTheme();
     initFooter();
 
