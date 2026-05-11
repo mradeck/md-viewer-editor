@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MD-Viewer – Markdown-Betrachter</title>
+
+<!-- Externe Bibliotheken: marked.js (Parser), DOMPurify (Sanitizer), KaTeX (Mathematik), highlight.js (Code) -->
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.11/dist/purify.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.9.0/highlight.min.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.9.0/styles/github.min.css" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+
+<style>
+/* ============================================================
+   DESIGN-TOKENS
+   ============================================================ */
+:root,
+[data-theme="hell"] {
+    --bg-app: #f5f3ef; --bg-panel: #ffffff; --bg-elev: #faf8f5;
+    --bg-drop: #eeeae3; --bg-drop-active: #e5d9c5;
+    --fg-primary: #1a1714; --fg-secondary: #4a4540; --fg-muted: #8a8079;
+    --accent: #b8632f; --accent-soft: rgba(184, 99, 47, 0.12);
+    --border: #d8d2c8; --border-strong: #b8b0a4;
+    --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06);
+    --code-bg: #f0ece5;
+    --font-body: "Source Serif 4", "Source Serif Pro", Georgia, "Times New Roman", serif;
+    --font-ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", "Fira Code", "SF Mono", Consolas, monospace;
+    --max-width: 720px; --line-height: 1.75;
+}
+[data-theme="dunkel"] {
+    --bg-app: #1a1a1c; --bg-panel: #232326; --bg-elev: #2a2a2e;
+    --bg-drop: #2a2a2e; --bg-drop-active: #353539;
+    --fg-primary: #e8e6e3; --fg-secondary: #b8b5b0; --fg-muted: #7a7770;
+    --accent: #e89668; --accent-soft: rgba(232, 150, 104, 0.15);
+    --border: #3a3a3e; --border-strong: #55555a;
+    --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.4);
+    --code-bg: #1e1e21;
+}
+[data-theme="sepia"] {
+    --bg-app: #f1e8d4; --bg-panel: #f9f1dc; --bg-elev: #ede2c7;
+    --bg-drop: #e8dcbd; --bg-drop-active: #d9c89e;
+    --fg-primary: #3d2f1e; --fg-secondary: #5a4a33; --fg-muted: #8a7860;
+    --accent: #8b4513; --accent-soft: rgba(139, 69, 19, 0.12);
+    --border: #c8b896; --border-strong: #a89878;
+    --shadow: 0 1px 3px rgba(74,55,35,0.08), 0 8px 24px rgba(74,55,35,0.10);
+    --code-bg: #e8dcbd;
+}
+[data-theme="akademisch"] {
+    --bg-app: #fafaf7; --bg-panel: #ffffff; --bg-elev: #f5f5f0;
+    --bg-drop: #f0f0ea; --bg-drop-active: #e5e5db;
+    --fg-primary: #000000; --fg-secondary: #2a2a2a; --fg-muted: #666666;
+    --accent: #8b0000; --accent-soft: rgba(139, 0, 0, 0.08);
+    --border: #d5d5d0; --border-strong: #a5a5a0;
+    --shadow: 0 1px 2px rgba(0,0,0,0.05);
+    --code-bg: #f0f0eb;
+    --font-body: "Computer Modern Serif", "Latin Modern Roman", "Cambria", "Times New Roman", serif;
+    --max-width: 680px; --line-height: 1.65;
+}
+[data-theme="solarized"] {
+    --bg-app: #fdf6e3; --bg-panel: #fefbf0; --bg-elev: #eee8d5;
+    --bg-drop: #eee8d5; --bg-drop-active: #ddd6c1;
+    --fg-primary: #073642; --fg-secondary: #586e75; --fg-muted: #93a1a1;
+    --accent: #268bd2; --accent-soft: rgba(38, 139, 210, 0.12);
+    --border: #d8d2bc; --border-strong: #93a1a1;
+    --shadow: 0 1px 3px rgba(7,54,66,0.06); --code-bg: #eee8d5;
+}
+[data-theme="nord"] {
+    --bg-app: #2e3440; --bg-panel: #3b4252; --bg-elev: #434c5e;
+    --bg-drop: #434c5e; --bg-drop-active: #4c566a;
+    --fg-primary: #eceff4; --fg-secondary: #d8dee9; --fg-muted: #81a1c1;
+    --accent: #88c0d0; --accent-soft: rgba(136, 192, 208, 0.18);
+    --border: #4c566a; --border-strong: #5e6779;
+    --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+    --code-bg: #2e3440;
+}
+[data-theme="terminal"] {
+    --bg-app: #0c0c0c; --bg-panel: #141414; --bg-elev: #1a1a1a;
+    --bg-drop: #141414; --bg-drop-active: #1f1f1f;
+    --fg-primary: #c8e6a0; --fg-secondary: #8aaa6e; --fg-muted: #5a6a48;
+    --accent: #ffd75f; --accent-soft: rgba(255, 215, 95, 0.12);
+    --border: #2a2a2a; --border-strong: #3a3a3a;
+    --shadow: 0 0 20px rgba(200, 230, 160, 0.05); --code-bg: #1a1a1a;
+    --font-body: "JetBrains Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+    --font-ui: "JetBrains Mono", "Fira Code", Consolas, monospace;
+    --line-height: 1.7;
+}
+[data-theme="hochkontrast"] {
+    --bg-app: #ffffff; --bg-panel: #ffffff; --bg-elev: #f5f5f5;
+    --bg-drop: #f0f0f0; --bg-drop-active: #ffeb3b;
+    --fg-primary: #000000; --fg-secondary: #000000; --fg-muted: #424242;
+    --accent: #0000cc; --accent-soft: rgba(0, 0, 204, 0.15);
+    --border: #000000; --border-strong: #000000;
+    --shadow: none; --code-bg: #f0f0f0;
+}
+
+/* ============================================================
+   GLOBAL RESET & GRUNDLAYOUT
+   ============================================================ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+    background: var(--bg-app); color: var(--fg-primary);
+    font-family: var(--font-body); font-size: 17px;
+    line-height: var(--line-height);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ============================================================
+   TOOLBAR
+   ============================================================ */
+.toolbar {
+    position: fixed; top: 0; left: 0; right: 0; height: 56px;
+    background: var(--bg-panel); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 20px; gap: 12px;
+    z-index: 100; font-family: var(--font-ui);
+    transition: transform 0.25s ease, background-color 0.3s ease;
+}
+.toolbar.hidden { transform: translateY(-100%); }
+
+.brand {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 600; font-size: 15px; color: var(--fg-primary);
+    margin-right: 8px;
+}
+.brand-mark {
+    width: 28px; height: 28px; border-radius: 6px;
+    background: var(--accent); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; font-family: var(--font-ui);
+}
+.toolbar-divider { width: 1px; height: 24px; background: var(--border); }
+
+.btn {
+    appearance: none; background: transparent;
+    border: 1px solid transparent; color: var(--fg-secondary);
+    padding: 7px 14px; border-radius: 6px;
+    font-family: var(--font-ui); font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all 0.15s ease;
+    display: inline-flex; align-items: center; gap: 6px;
+}
+.btn:hover {
+    background: var(--bg-elev); color: var(--fg-primary);
+    border-color: var(--border);
+}
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn:disabled:hover { background: transparent; border-color: transparent; color: var(--fg-secondary); }
+
+.btn.btn-icon { padding: 7px; min-width: 32px; justify-content: center; }
+
+.toolbar-spacer { flex: 1; }
+
+.theme-select {
+    appearance: none;
+    background: var(--bg-elev); border: 1px solid var(--border);
+    color: var(--fg-primary);
+    padding: 6px 28px 6px 12px; border-radius: 6px;
+    font-family: var(--font-ui); font-size: 13px; cursor: pointer;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'><path d='M2 4l3 3 3-3' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/></svg>");
+    background-repeat: no-repeat; background-position: right 10px center;
+}
+
+/* ============================================================
+   SPRACHUMSCHALTER
+   ============================================================ */
+.lang-switcher {
+    display: inline-flex; gap: 3px; margin-left: 4px;
+    padding: 3px; background: var(--bg-elev);
+    border: 1px solid var(--border); border-radius: 7px;
+}
+.lang-flag {
+    appearance: none; padding: 0; border: 1px solid transparent;
+    background: transparent; cursor: pointer;
+    width: 30px; height: 22px; border-radius: 3px; overflow: hidden;
+    opacity: 0.55; transition: all 0.15s ease;
+    display: block; position: relative;
+}
+.lang-flag:hover { opacity: 0.9; transform: translateY(-1px); }
+.lang-flag.active {
+    opacity: 1; box-shadow: 0 0 0 2px var(--accent); transform: none;
+}
+.lang-flag svg { display: block; width: 100%; height: 100%; }
+
+/* ============================================================
+   DROP-ZONE
+   ============================================================ */
+.dropzone-wrapper {
+    position: fixed; inset: 56px 0 28px 0;
+    display: flex; align-items: center; justify-content: center;
+    padding: 40px; background: var(--bg-app);
+    transition: background-color 0.3s ease;
+}
+.dropzone {
+    width: 100%; max-width: 560px; min-height: 340px;
+    background: var(--bg-drop);
+    border: 2px dashed var(--border-strong); border-radius: 16px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 48px 32px; text-align: center;
+    cursor: pointer; transition: all 0.2s ease; position: relative;
+}
+.dropzone:hover { background: var(--bg-drop-active); border-color: var(--accent); }
+.dropzone.dragover {
+    background: var(--accent-soft); border-color: var(--accent);
+    border-style: solid; transform: scale(1.02);
+}
+.dropzone-icon {
+    width: 72px; height: 72px; margin-bottom: 24px;
+    color: var(--accent); opacity: 0.85;
+    transition: transform 0.3s ease;
+}
+.dropzone:hover .dropzone-icon,
+.dropzone.dragover .dropzone-icon { transform: translateY(-4px) scale(1.05); }
+.dropzone-title {
+    font-family: var(--font-ui); font-size: 20px; font-weight: 600;
+    color: var(--fg-primary); margin-bottom: 10px;
+}
+.dropzone-subtitle {
+    font-family: var(--font-ui); font-size: 14px;
+    color: var(--fg-secondary); margin-bottom: 24px;
+    line-height: 1.5; max-width: 380px;
+}
+.dropzone-hint {
+    font-family: var(--font-ui); font-size: 12px;
+    color: var(--fg-muted); margin-top: 20px; letter-spacing: 0.02em;
+}
+.dropzone-formats {
+    display: inline-flex; gap: 6px; margin-top: 12px;
+    flex-wrap: wrap; justify-content: center;
+}
+.format-tag {
+    font-family: var(--font-mono); font-size: 11px;
+    padding: 3px 8px; background: var(--bg-panel);
+    border: 1px solid var(--border); border-radius: 4px;
+    color: var(--fg-secondary);
+}
+.dropzone.hidden { display: none; }
+
+.global-drop-overlay {
+    position: fixed; inset: 0;
+    background: var(--accent-soft); border: 4px dashed var(--accent);
+    z-index: 1000; display: none;
+    align-items: center; justify-content: center;
+    pointer-events: none; backdrop-filter: blur(2px);
+}
+.global-drop-overlay.active { display: flex; }
+.global-drop-message {
+    background: var(--bg-panel); padding: 32px 48px;
+    border-radius: 12px; box-shadow: var(--shadow);
+    font-family: var(--font-ui); font-size: 18px; font-weight: 600;
+    color: var(--accent);
+}
+
+/* ============================================================
+   VIEWER
+   ============================================================ */
+.viewer-wrapper {
+    position: fixed; inset: 56px 0 28px 0;
+    overflow-y: auto; background: var(--bg-app);
+    transition: background-color 0.3s ease;
+}
+.viewer-wrapper.hidden { display: none; }
+.viewer {
+    max-width: var(--max-width); margin: 0 auto;
+    padding: 64px 32px 96px; color: var(--fg-primary);
+}
+
+.viewer h1, .viewer h2, .viewer h3, .viewer h4, .viewer h5, .viewer h6 {
+    font-family: var(--font-ui); font-weight: 700; color: var(--fg-primary);
+    margin-top: 2em; margin-bottom: 0.6em;
+    line-height: 1.25; letter-spacing: -0.01em;
+}
+[data-theme="akademisch"] .viewer h1,
+[data-theme="akademisch"] .viewer h2,
+[data-theme="akademisch"] .viewer h3 {
+    font-family: var(--font-body); font-weight: 600;
+}
+.viewer h1 {
+    font-size: 2.2em;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.4em; margin-top: 0;
+}
+.viewer h2 { font-size: 1.6em; }
+.viewer h3 { font-size: 1.3em; }
+.viewer h4 { font-size: 1.1em; }
+.viewer p { margin: 0 0 1.1em; }
+.viewer a {
+    color: var(--accent); text-decoration: underline;
+    text-decoration-thickness: 1px; text-underline-offset: 3px;
+}
+.viewer a:hover { text-decoration-thickness: 2px; }
+.viewer strong { font-weight: 700; }
+.viewer em { font-style: italic; }
+.viewer ul, .viewer ol { margin: 0 0 1.1em 1.5em; padding-left: 0.5em; }
+.viewer li { margin-bottom: 0.3em; }
+.viewer li > ul, .viewer li > ol { margin-top: 0.3em; }
+.viewer blockquote {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-soft);
+    padding: 0.8em 1.2em; margin: 1.2em 0;
+    color: var(--fg-secondary);
+    border-radius: 0 6px 6px 0; font-style: italic;
+}
+.viewer code {
+    font-family: var(--font-mono); font-size: 0.88em;
+    background: var(--code-bg); padding: 2px 6px;
+    border-radius: 4px; color: var(--fg-primary);
+}
+.viewer pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 20px; overflow-x: auto;
+    margin: 1.2em 0; line-height: 1.55;
+}
+.viewer pre code { background: transparent; padding: 0; font-size: 0.92em; }
+.viewer hr { border: none; border-top: 1px solid var(--border); margin: 2.5em 0; }
+.viewer table {
+    border-collapse: collapse; width: 100%; margin: 1.5em 0;
+    font-family: var(--font-ui); font-size: 0.93em;
+}
+.viewer th, .viewer td {
+    border: 1px solid var(--border); padding: 8px 14px; text-align: left;
+}
+.viewer th { background: var(--bg-elev); font-weight: 600; }
+.viewer tbody tr:nth-child(even) { background: var(--bg-elev); }
+.viewer img {
+    max-width: 100%; height: auto; border-radius: 6px;
+    margin: 1em 0; box-shadow: var(--shadow);
+}
+.viewer input[type="checkbox"] { margin-right: 6px; }
+
+/* ============================================================
+   EDITOR-PANEL
+   ============================================================ */
+.editor-panel {
+    position: fixed; top: 56px; right: 0; bottom: 28px;
+    width: 50%; max-width: 720px;
+    background: var(--bg-panel);
+    border-left: 1px solid var(--border);
+    box-shadow: -8px 0 24px rgba(0,0,0,0.08);
+    transform: translateX(100%);
+    transition: transform 0.25s ease, background-color 0.3s ease;
+    display: flex; flex-direction: column; z-index: 50;
+}
+.editor-panel.open { transform: translateX(0); }
+.editor-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: var(--font-ui); font-size: 13px; font-weight: 600;
+    color: var(--fg-secondary);
+}
+.editor-textarea {
+    flex: 1; width: 100%; border: none; outline: none;
+    background: var(--bg-panel); color: var(--fg-primary);
+    font-family: var(--font-mono); font-size: 14px;
+    line-height: 1.65; padding: 24px 32px; resize: none;
+}
+
+.sync-indicator {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; color: var(--fg-muted);
+    font-family: var(--font-ui); margin-left: 8px;
+}
+.sync-indicator::before {
+    content: ''; display: inline-block;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); opacity: 0.6;
+}
+
+/* ============================================================
+   FUßZEILE (Statuszeile)
+   ============================================================ */
+.footer {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 28px;
+    background: var(--bg-panel);
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 14px;
+    gap: 10px;
+    font-family: var(--font-ui);
+    font-size: 11px;
+    color: var(--fg-muted);
+    z-index: 95;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+.footer-section { display: flex; align-items: center; gap: 6px; }
+.footer-spacer { flex: 1; }
+.footer-filename {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-secondary);
+    max-width: 50%;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.footer-filename.empty { color: var(--fg-muted); font-style: italic; font-family: var(--font-ui); }
+.footer-separator {
+    width: 1px; height: 14px;
+    background: var(--border);
+    opacity: 0.7;
+}
+.footer-link {
+    color: var(--accent);
+    text-decoration: none;
+    transition: opacity 0.15s ease;
+}
+.footer-link:hover { text-decoration: underline; }
+.footer-version {
+    font-family: var(--font-mono);
+    padding: 1px 6px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-size: 10px;
+    color: var(--fg-secondary);
+    letter-spacing: 0.02em;
+}
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+.toast {
+    position: fixed; bottom: 40px; left: 50%;
+    transform: translateX(-50%) translateY(120%);
+    background: var(--fg-primary); color: var(--bg-panel);
+    padding: 10px 20px; border-radius: 8px;
+    font-family: var(--font-ui); font-size: 13px;
+    box-shadow: var(--shadow); z-index: 200;
+    transition: transform 0.3s ease; pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ============================================================
+   SCROLLBARS
+   ============================================================ */
+.viewer-wrapper::-webkit-scrollbar,
+.editor-textarea::-webkit-scrollbar { width: 10px; height: 10px; }
+.viewer-wrapper::-webkit-scrollbar-track,
+.editor-textarea::-webkit-scrollbar-track { background: transparent; }
+.viewer-wrapper::-webkit-scrollbar-thumb,
+.editor-textarea::-webkit-scrollbar-thumb {
+    background: var(--border-strong); border-radius: 5px;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+    .toolbar { padding: 0 12px; gap: 6px; }
+    .brand { font-size: 14px; }
+    .btn { padding: 6px 10px; font-size: 12px; }
+    .btn-label { display: none; }
+    .editor-panel { width: 100%; max-width: 100%; }
+    .viewer { padding: 32px 20px 64px; }
+    .lang-flag { width: 26px; height: 18px; }
+    .footer { font-size: 10px; padding: 0 10px; gap: 8px; }
+    .footer-filename { max-width: 35%; }
+    .footer-link { display: none; }
+}
+
+/* ============================================================
+   DRUCK
+   ============================================================ */
+@media print {
+    .toolbar, .dropzone-wrapper, .editor-panel, .toast, .footer { display: none !important; }
+    .viewer-wrapper { position: static; inset: auto; overflow: visible; }
+    .viewer { max-width: 100%; padding: 0; }
+    body { overflow: visible; }
+}
+</style>
+</head>
+<body data-theme="hell">
+
+<!-- ============================================================
+     TOOLBAR
+     ============================================================ -->
+<header class="toolbar" id="toolbar">
+    <div class="brand">
+        <div class="brand-mark">MD</div>
+        <span data-i18n="brand">MD-Viewer</span>
+    </div>
+
+    <div class="toolbar-divider"></div>
+
+    <button class="btn" id="btn-open" data-i18n-title="titleOpen" title="Datei öffnen (Strg+O)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l2-3h4l2 3h10v13H3z"/></svg>
+        <span class="btn-label" data-i18n="btnOpen">Öffnen</span>
+    </button>
+
+    <button class="btn" id="btn-edit" data-i18n-title="titleEdit" title="Bearbeitungsmodus umschalten (Strg+E)" disabled>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        <span class="btn-label" data-i18n="btnEdit">Bearbeiten</span>
+    </button>
+
+    <button class="btn" id="btn-save" data-i18n-title="titleSave" title="Speichern (Strg+S)" disabled>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        <span class="btn-label" data-i18n="btnSave">Speichern</span>
+    </button>
+
+    <button class="btn" id="btn-export" data-i18n-title="titleExport" title="Als HTML exportieren" disabled>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        <span class="btn-label" data-i18n="btnExport">Export</span>
+    </button>
+
+    <button class="btn" id="btn-close" data-i18n-title="titleClose" title="Datei schließen" disabled>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        <span class="btn-label" data-i18n="btnClose">Schließen</span>
+    </button>
+
+    <div class="toolbar-spacer"></div>
+
+    <select class="theme-select" id="theme-select" data-i18n-title="titleTheme" title="Design-Variante wählen">
+        <option value="hell" data-i18n-option="themeHell">Hell – Stone</option>
+        <option value="dunkel" data-i18n-option="themeDunkel">Dunkel – Onyx</option>
+        <option value="sepia" data-i18n-option="themeSepia">Sepia – Pergament</option>
+        <option value="akademisch" data-i18n-option="themeAkademisch">Akademisch – Paper</option>
+        <option value="solarized" data-i18n-option="themeSolarized">Solarized</option>
+        <option value="nord" data-i18n-option="themeNord">Nord – Polar</option>
+        <option value="terminal" data-i18n-option="themeTerminal">Terminal – Mono</option>
+        <option value="hochkontrast" data-i18n-option="themeHochkontrast">Hochkontrast</option>
+    </select>
+
+    <button class="btn btn-icon" id="btn-info" data-i18n-title="titleInfo" title="Information & Demo anzeigen" aria-label="Info">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="11"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+    </button>
+
+    <div class="lang-switcher" role="group" aria-label="Sprache wählen">
+        <button class="lang-flag active" data-lang="de" data-i18n-title="titleLangDE" title="Deutsch" aria-label="Deutsch">
+            <svg viewBox="0 0 5 3" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                <rect width="5" height="1" y="0" fill="#000000"/>
+                <rect width="5" height="1" y="1" fill="#DD0000"/>
+                <rect width="5" height="1" y="2" fill="#FFCE00"/>
+            </svg>
+        </button>
+        <button class="lang-flag" data-lang="en" data-i18n-title="titleLangEN" title="English" aria-label="English">
+            <svg viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                <rect width="60" height="30" fill="#012169"/>
+                <path d="M0,0 L60,30 M60,0 L0,30" stroke="#FFFFFF" stroke-width="6"/>
+                <path d="M0,0 L60,30" stroke="#C8102E" stroke-width="4"/>
+                <path d="M60,0 L0,30" stroke="#C8102E" stroke-width="4"/>
+                <path d="M30,0 v30 M0,15 h60" stroke="#FFFFFF" stroke-width="10"/>
+                <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/>
+            </svg>
+        </button>
+    </div>
+</header>
+
+<!-- ============================================================
+     DROP-ZONE
+     ============================================================ -->
+<main class="dropzone-wrapper" id="dropzone-wrapper">
+    <div class="dropzone" id="dropzone">
+        <svg class="dropzone-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 8h26l14 14v34a4 4 0 01-4 4H14a4 4 0 01-4-4V12a4 4 0 014-4z"/>
+            <path d="M40 8v14h14"/>
+            <path d="M22 38l10-10 10 10"/>
+            <path d="M32 28v20"/>
+        </svg>
+        <div class="dropzone-title" data-i18n="dropzoneTitle">Markdown-Datei hierher ziehen</div>
+        <div class="dropzone-subtitle" data-i18n="dropzoneSubtitle">
+            Alternativ kann durch einen Klick in diesen Bereich eine Datei aus dem lokalen Dateisystem ausgewählt werden. Sämtliche Verarbeitung erfolgt ausschließlich lokal im Browser; keinerlei Daten verlassen den Rechner.
+        </div>
+        <div class="dropzone-formats">
+            <span class="format-tag">.md</span>
+            <span class="format-tag">.markdown</span>
+            <span class="format-tag">.mdown</span>
+            <span class="format-tag">.txt</span>
+        </div>
+        <div class="dropzone-hint" data-i18n="dropzoneHint">↑ Tipp: Tastenkürzel Strg+O zum Öffnen</div>
+    </div>
+</main>
+
+<!-- ============================================================
+     VIEWER
+     ============================================================ -->
+<section class="viewer-wrapper hidden" id="viewer-wrapper">
+    <article class="viewer" id="viewer"></article>
+</section>
+
+<!-- ============================================================
+     EDITOR-PANEL
+     ============================================================ -->
+<aside class="editor-panel" id="editor-panel">
+    <div class="editor-header">
+        <span>
+            <span data-i18n="editorHeader">Markdown-Quelltext</span>
+            <span class="sync-indicator" data-i18n="syncActive">Scroll-Sync</span>
+        </span>
+        <button class="btn" id="btn-editor-close" data-i18n="editorClose" style="padding: 4px 8px;">Schließen</button>
+    </div>
+    <textarea class="editor-textarea" id="editor-textarea" spellcheck="false"></textarea>
+</aside>
+
+<!-- ============================================================
+     GLOBAL DROP OVERLAY
+     ============================================================ -->
+<div class="global-drop-overlay" id="global-drop">
+    <div class="global-drop-message" data-i18n="globalDropMessage">📥 Datei zum Öffnen ablegen</div>
+</div>
+
+<!-- ============================================================
+     TOAST
+     ============================================================ -->
+<div class="toast" id="toast"></div>
+
+<!-- ============================================================
+     FUSSZEILE
+     ============================================================ -->
+<footer class="footer" id="footer">
+    <div class="footer-section footer-filename empty" id="footer-filename" data-i18n="footerNoFile">— keine Datei geladen —</div>
+    <div class="footer-spacer"></div>
+    <div class="footer-section" id="footer-date">—</div>
+    <div class="footer-separator"></div>
+    <div class="footer-section">
+        <a class="footer-link" href="https://www.michael-radeck.de" target="_blank" rel="noopener noreferrer">www.michael-radeck.de</a>
+    </div>
+    <div class="footer-separator"></div>
+    <div class="footer-section">
+        <span class="footer-version" id="footer-version" title="Versionsschema: Jahr.Push.Iteration">v26.1.1</span>
+    </div>
+</footer>
+
+<!-- Datei-Input -->
+<input type="file" id="file-input" accept=".md,.markdown,.mdown,.mkd,.txt" style="display:none;">
+
+<script>
+// =================================================================
+// MD-Viewer – Single-File Markdown-Betrachter
+// Versionsschema: Jahr.Push.Iteration
+//   Jahr:      Kalenderjahr (zweistellig, hier 26 = 2026)
+//   Push:      laufende Nummer der GitHub-Pushes innerhalb des Jahres
+//   Iteration: feinere Änderungen zwischen zwei Pushes
+// =================================================================
+
+const APP_VERSION = '26.1.1';
+const APP_AUTHOR_URL = 'https://www.michael-radeck.de';
+
+// ===== I18N =====
+const i18n = {
+    de: {
+        brand: 'MD-Viewer',
+        btnOpen: 'Öffnen', btnEdit: 'Bearbeiten', btnSave: 'Speichern',
+        btnExport: 'Export', btnClose: 'Schließen',
+        titleOpen: 'Datei öffnen (Strg+O)',
+        titleEdit: 'Bearbeitungsmodus umschalten (Strg+E)',
+        titleSave: 'Speichern (Strg+S)',
+        titleExport: 'Als HTML exportieren',
+        titleClose: 'Datei schließen',
+        titleTheme: 'Design-Variante wählen',
+        titleInfo: 'Information & Demo anzeigen',
+        titleLangDE: 'Deutsch', titleLangEN: 'English',
+        dropzoneTitle: 'Markdown-Datei hierher ziehen',
+        dropzoneSubtitle: 'Alternativ kann durch einen Klick in diesen Bereich eine Datei aus dem lokalen Dateisystem ausgewählt werden. Sämtliche Verarbeitung erfolgt ausschließlich lokal im Browser; keinerlei Daten verlassen den Rechner.',
+        dropzoneHint: '↑ Tipp: Tastenkürzel Strg+O zum Öffnen',
+        editorHeader: 'Markdown-Quelltext',
+        editorClose: 'Schließen',
+        syncActive: 'Scroll-Sync',
+        globalDropMessage: '📥 Datei zum Öffnen ablegen',
+        toastSaved: 'Gespeichert',
+        toastDownloaded: 'Heruntergeladen',
+        toastExported: 'HTML exportiert',
+        toastSaveFailed: 'Speichern fehlgeschlagen: ',
+        toastUnsupported: 'Nicht unterstütztes Format: ',
+        fileInfoDemo: 'Info-Dokument',
+        footerNoFile: '— keine Datei geladen —',
+        renderError: 'Rendering-Bibliotheken noch nicht geladen. Bitte erneut versuchen.',
+        loadingError: '<strong>Bibliotheken konnten nicht geladen werden.</strong><br>Die externen CDN-Ressourcen sind nicht erreichbar. Möglicherweise blockiert eine Firewall, ein Adblocker oder eine restriktive Content-Security-Policy den Zugriff auf <code>cdn.jsdelivr.net</code>.',
+        themeHell: 'Hell – Stone',
+        themeDunkel: 'Dunkel – Onyx',
+        themeSepia: 'Sepia – Pergament',
+        themeAkademisch: 'Akademisch – Paper',
+        themeSolarized: 'Solarized',
+        themeNord: 'Nord – Polar',
+        themeTerminal: 'Terminal – Mono',
+        themeHochkontrast: 'Hochkontrast',
+        demoMD: `# MD-Viewer – Funktionsübersicht (v${APP_VERSION})
+
+Dieser Viewer dient der **distraktionsfreien Darstellung** von Markdown-Dokumenten direkt im Browser. Die Anwendung läuft vollständig clientseitig; keine Daten werden an externe Server übertragen.
+
+## Funktionsumfang
+
+- **Drag & Drop** beliebiger Markdown-Dateien (auch \`.txt\`)
+- **Acht Design-Varianten** zur ergonomischen Anpassung (Hell, Dunkel, Sepia, Akademisch, Solarized, Nord, Terminal, Hochkontrast)
+- **Sprachumschaltung** Deutsch / Englisch über die Flaggen rechts oben
+- **Info-Button** zur Anzeige dieser Übersicht
+- **Live-Editor** mit synchronem bidirektionalen Scroll zwischen Quelltext und Vorschau
+- **Speicherung** zurück in die Originaldatei via *File System Access API*
+- **HTML-Export** als eigenständiges Dokument
+- **Statusleiste** unten mit Dateiname, Datum, Version und Autorenlink
+
+## Versionsschema
+
+Die Versionsnummer folgt dem Format \`Jahr.Push.Iteration\`:
+
+- **Jahr** — zweistellige Jahreszahl (aktuell *26*)
+- **Push** — fortlaufende Nummer der GitHub-Pushes innerhalb des Jahres
+- **Iteration** — kleinere Änderungen zwischen zwei Pushes
+
+Bei jedem Push wird die Push-Zahl inkrementiert, die Iteration zurückgesetzt und sämtliche Dokumentation (README, CHANGELOG, dieses Info-Dokument) auf den aktuellen Funktionsstand gebracht.
+
+## Beispielhafte Darstellung
+
+> Wissenschaftliche Texte profitieren von ruhiger Typographie und großzügigem Zeilenabstand. Die *Akademisch*-Variante orientiert sich an klassischen Journal-Layouts.
+
+### Mathematischer Ausdruck
+
+Der Satz des Pythagoras lautet: $a^2 + b^2 = c^2$.
+
+Eine zentrierte Formel:
+
+$$E = mc^2$$
+
+### Quelltext-Beispiel
+
+\`\`\`python
+def fibonacci(n: int) -> int:
+    """Rekursive Berechnung der Fibonacci-Folge."""
+    if n < 2:
+        return n
+    return fibonacci(n - 1) + fibonacci(n - 2)
+\`\`\`
+
+### Tabellarische Daten
+
+| Variante      | Hintergrund     | Schrift                  |
+|---------------|-----------------|--------------------------|
+| Hell          | Warmes Beige    | Source Serif             |
+| Dunkel        | Anthrazit       | Source Serif             |
+| Akademisch    | Reinweiß        | Computer Modern          |
+| Terminal      | Schwarz         | JetBrains Mono           |
+
+### Zur Demonstration des Scroll-Sync
+
+Das Editor-Overlay (rechts) und die Vorschau (links) scrollen proportional zueinander. Wer im Quelltext nach unten scrollt, sieht in der Vorschau den entsprechenden Bereich. Dies funktioniert in beide Richtungen.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+---
+
+*Über die Schaltfläche „Schließen" gelangt man zurück zur Ablage-Fläche. Eine eigene Datei kann jederzeit per Drag & Drop oder über „Öffnen" geladen werden.*`
+    },
+    en: {
+        brand: 'MD-Viewer',
+        btnOpen: 'Open', btnEdit: 'Edit', btnSave: 'Save',
+        btnExport: 'Export', btnClose: 'Close',
+        titleOpen: 'Open file (Ctrl+O)',
+        titleEdit: 'Toggle edit mode (Ctrl+E)',
+        titleSave: 'Save (Ctrl+S)',
+        titleExport: 'Export as HTML',
+        titleClose: 'Close file',
+        titleTheme: 'Select design variant',
+        titleInfo: 'Show information & demo',
+        titleLangDE: 'German', titleLangEN: 'English',
+        dropzoneTitle: 'Drop Markdown file here',
+        dropzoneSubtitle: 'Alternatively, click this area to select a file from the local file system. All processing happens exclusively in the browser; no data ever leaves the device.',
+        dropzoneHint: '↑ Tip: Press Ctrl+O to open',
+        editorHeader: 'Markdown source',
+        editorClose: 'Close',
+        syncActive: 'Scroll-sync',
+        globalDropMessage: '📥 Drop file to open',
+        toastSaved: 'Saved',
+        toastDownloaded: 'Downloaded',
+        toastExported: 'HTML exported',
+        toastSaveFailed: 'Save failed: ',
+        toastUnsupported: 'Unsupported format: ',
+        fileInfoDemo: 'Info document',
+        footerNoFile: '— no file loaded —',
+        renderError: 'Rendering libraries not yet loaded. Please try again.',
+        loadingError: '<strong>Libraries could not be loaded.</strong><br>The external CDN resources are unreachable. A firewall, ad blocker, or restrictive Content-Security-Policy may be blocking access to <code>cdn.jsdelivr.net</code>.',
+        themeHell: 'Light – Stone',
+        themeDunkel: 'Dark – Onyx',
+        themeSepia: 'Sepia – Parchment',
+        themeAkademisch: 'Academic – Paper',
+        themeSolarized: 'Solarized',
+        themeNord: 'Nord – Polar',
+        themeTerminal: 'Terminal – Mono',
+        themeHochkontrast: 'High contrast',
+        demoMD: `# MD-Viewer – Feature Overview (v${APP_VERSION})
+
+This viewer provides a **distraction-free presentation** of Markdown documents directly in the browser. The application runs entirely client-side; no data is transmitted to external servers.
+
+## Feature Set
+
+- **Drag & drop** for any Markdown file (including \`.txt\`)
+- **Eight design variants** for ergonomic adaptation (Light, Dark, Sepia, Academic, Solarized, Nord, Terminal, High-contrast)
+- **Language switching** German / English via the flags in the upper right
+- **Info button** showing this overview
+- **Live editor** with synchronised bidirectional scrolling between source and preview
+- **Saving** back to the original file via the *File System Access API*
+- **HTML export** as a standalone document
+- **Status bar** at the bottom with filename, date, version, and author link
+
+## Versioning Scheme
+
+The version number follows the format \`Year.Push.Iteration\`:
+
+- **Year** — two-digit year (currently *26*)
+- **Push** — sequential number of GitHub pushes within the year
+- **Iteration** — minor changes between two pushes
+
+On every push, the push counter is incremented, the iteration is reset, and all documentation (README, CHANGELOG, this info document) is brought in line with the current feature set.
+
+## Sample Presentation
+
+> Scientific texts benefit from calm typography and generous line spacing. The *Academic* variant is modelled after classical journal layouts.
+
+### Mathematical Expression
+
+The Pythagorean theorem states: $a^2 + b^2 = c^2$.
+
+A centred formula:
+
+$$E = mc^2$$
+
+### Source Code Example
+
+\`\`\`python
+def fibonacci(n: int) -> int:
+    """Recursive computation of the Fibonacci sequence."""
+    if n < 2:
+        return n
+    return fibonacci(n - 1) + fibonacci(n - 2)
+\`\`\`
+
+### Tabular Data
+
+| Variant       | Background      | Typeface                 |
+|---------------|-----------------|--------------------------|
+| Light         | Warm beige      | Source Serif             |
+| Dark          | Anthracite      | Source Serif             |
+| Academic      | Pure white      | Computer Modern          |
+| Terminal      | Black           | JetBrains Mono           |
+
+### Demonstration of Scroll-Sync
+
+The editor overlay (right) and the preview (left) scroll proportionally to each other. Scrolling down in the source brings the corresponding area into view in the preview. This works in both directions.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+---
+
+*The "Close" button returns to the drop area. A custom file can be loaded at any time via drag & drop or the "Open" button.*`
+    }
+};
+
+// ===== Wartelogik =====
+function waitForLibraries(callback, attempts) {
+    attempts = attempts || 0;
+    if (typeof window.marked !== 'undefined' && typeof window.DOMPurify !== 'undefined') {
+        callback(); return;
+    }
+    if (attempts > 100) {
+        const v = document.getElementById('viewer');
+        if (v) {
+            v.innerHTML = '<div style="padding:24px;border:1px solid #c33;background:#fee;border-radius:8px;font-family:sans-serif">' +
+                i18n.de.loadingError + '</div>';
+        }
+        return;
+    }
+    setTimeout(function() { waitForLibraries(callback, attempts + 1); }, 100);
+}
+
+waitForLibraries(function() {
+    'use strict';
+
+    const STORAGE_THEME_KEY = 'md-viewer-theme';
+    const STORAGE_LANG_KEY = 'md-viewer-lang';
+    const ACCEPTED_EXT = /\.(md|markdown|mdown|mkd|txt)$/i;
+
+    const $ = id => document.getElementById(id);
+    const dropzone = $('dropzone');
+    const dropzoneWrapper = $('dropzone-wrapper');
+    const viewerWrapper = $('viewer-wrapper');
+    const viewer = $('viewer');
+    const editorPanel = $('editor-panel');
+    const editorTextarea = $('editor-textarea');
+    const fileInput = $('file-input');
+    const themeSelect = $('theme-select');
+    const toast = $('toast');
+    const globalDrop = $('global-drop');
+    const footerFilename = $('footer-filename');
+    const footerDate = $('footer-date');
+    const footerVersion = $('footer-version');
+
+    let currentFileHandle = null;
+    let currentFileName = '';
+    let currentContent = '';
+    let currentLang = 'de';
+    let isDemoLoaded = false;
+    let dragCounter = 0;
+    let scrollSyncing = false;
+
+    if (window.marked) {
+        marked.setOptions({
+            gfm: true, breaks: false,
+            highlight: function(code, lang) {
+                if (window.hljs && lang && hljs.getLanguage(lang)) {
+                    try { return hljs.highlight(code, { language: lang }).value; } catch(e) {}
+                }
+                return code;
+            }
+        });
+    }
+
+    // =================================================================
+    // FUSSZEILE
+    // =================================================================
+    function initFooter() {
+        footerVersion.textContent = 'v' + APP_VERSION;
+        updateFooterDate();
+    }
+
+    function updateFooterDate() {
+        const locale = currentLang === 'de' ? 'de-DE' : 'en-GB';
+        footerDate.textContent = new Date().toLocaleDateString(locale, {
+            year: 'numeric', month: '2-digit', day: '2-digit'
+        });
+    }
+
+    function setFooterFilename(name) {
+        if (name) {
+            footerFilename.textContent = name;
+            footerFilename.classList.remove('empty');
+            footerFilename.removeAttribute('data-i18n');
+        } else {
+            footerFilename.textContent = i18n[currentLang].footerNoFile;
+            footerFilename.classList.add('empty');
+            footerFilename.setAttribute('data-i18n', 'footerNoFile');
+        }
+    }
+
+    // =================================================================
+    // SPRACHE
+    // =================================================================
+    function applyLanguage(lang) {
+        if (!i18n[lang]) lang = 'de';
+        currentLang = lang;
+        const t = i18n[lang];
+        document.documentElement.lang = lang;
+
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (t[key] !== undefined) el.textContent = t[key];
+        });
+        document.querySelectorAll('[data-i18n-title]').forEach(el => {
+            const key = el.getAttribute('data-i18n-title');
+            if (t[key] !== undefined) el.title = t[key];
+        });
+        document.querySelectorAll('[data-i18n-option]').forEach(el => {
+            const key = el.getAttribute('data-i18n-option');
+            if (t[key] !== undefined) el.textContent = t[key];
+        });
+        document.querySelectorAll('.lang-flag').forEach(f => {
+            f.classList.toggle('active', f.getAttribute('data-lang') === lang);
+        });
+
+        editorTextarea.placeholder = t.editorHeader + '...';
+        updateFooterDate();
+
+        if (isDemoLoaded) {
+            editorTextarea.value = t.demoMD;
+            renderMarkdown(t.demoMD);
+            setFooterFilename(t.fileInfoDemo);
+        }
+
+        try { localStorage.setItem(STORAGE_LANG_KEY, lang); } catch(e) {}
+    }
+
+    function loadSavedLanguage() {
+        try {
+            const saved = localStorage.getItem(STORAGE_LANG_KEY);
+            if (saved && i18n[saved]) { currentLang = saved; return saved; }
+        } catch(e) {}
+        const browserLang = (navigator.language || 'de').slice(0, 2).toLowerCase();
+        return i18n[browserLang] ? browserLang : 'de';
+    }
+
+    document.querySelectorAll('.lang-flag').forEach(flag => {
+        flag.addEventListener('click', () => applyLanguage(flag.getAttribute('data-lang')));
+    });
+
+    // =================================================================
+    // THEMA
+    // =================================================================
+    function applyTheme(theme) {
+        document.body.setAttribute('data-theme', theme);
+        themeSelect.value = theme;
+        try { localStorage.setItem(STORAGE_THEME_KEY, theme); } catch(e) {}
+    }
+    function loadSavedTheme() {
+        try {
+            const saved = localStorage.getItem(STORAGE_THEME_KEY);
+            if (saved) applyTheme(saved);
+        } catch(e) {}
+    }
+    themeSelect.addEventListener('change', e => applyTheme(e.target.value));
+
+    // =================================================================
+    // MARKDOWN RENDERN
+    // =================================================================
+    function renderMarkdown(text) {
+        currentContent = text;
+        if (typeof window.marked === 'undefined' || typeof window.DOMPurify === 'undefined') {
+            viewer.innerHTML = '<p style="color:#c33;font-family:sans-serif">' + i18n[currentLang].renderError + '</p>';
+            return;
+        }
+        try {
+            const html = marked.parse(text);
+            const clean = DOMPurify.sanitize(html, {
+                ADD_TAGS: ['math', 'mrow', 'mi', 'mn', 'mo', 'msup', 'msub', 'mfrac'],
+                ADD_ATTR: ['class', 'data-*']
+            });
+            viewer.innerHTML = clean;
+            if (window.renderMathInElement) {
+                renderMathInElement(viewer, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$',  right: '$',  display: false},
+                        {left: '\\(', right: '\\)', display: false},
+                        {left: '\\[', right: '\\]', display: true}
+                    ],
+                    throwOnError: false
+                });
+            }
+            if (window.hljs) {
+                viewer.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
+            }
+        } catch(err) {
+            viewer.innerHTML = `<p style="color:red">Rendering error: ${err.message}</p>`;
+        }
+    }
+
+    // =================================================================
+    // DATEI EINLESEN / SPEICHERN / EXPORT
+    // =================================================================
+    async function readFile(file) {
+        if (!ACCEPTED_EXT.test(file.name)) {
+            showToast(i18n[currentLang].toastUnsupported + file.name); return;
+        }
+        currentFileName = file.name;
+        isDemoLoaded = false;
+        const text = await file.text();
+        editorTextarea.value = text;
+        renderMarkdown(text);
+        showViewer();
+        const kb = (file.size / 1024).toFixed(1);
+        setFooterFilename(`${file.name} · ${kb} KB`);
+        enableFileActions(true);
+    }
+
+    async function openFilePicker() {
+        if (window.showOpenFilePicker) {
+            try {
+                const [handle] = await window.showOpenFilePicker({
+                    types: [{
+                        description: 'Markdown',
+                        accept: { 'text/markdown': ['.md', '.markdown', '.mdown', '.mkd', '.txt'] }
+                    }]
+                });
+                currentFileHandle = handle;
+                const file = await handle.getFile();
+                await readFile(file);
+            } catch(err) {
+                if (err.name !== 'AbortError') console.error(err);
+            }
+        } else {
+            fileInput.click();
+        }
+    }
+
+    async function saveFile() {
+        const text = editorTextarea.value;
+        if (currentFileHandle && currentFileHandle.createWritable) {
+            try {
+                const writable = await currentFileHandle.createWritable();
+                await writable.write(text);
+                await writable.close();
+                showToast(i18n[currentLang].toastSaved);
+            } catch(err) {
+                showToast(i18n[currentLang].toastSaveFailed + err.message);
+            }
+        } else {
+            const blob = new Blob([text], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = currentFileName || 'document.md'; a.click();
+            URL.revokeObjectURL(url);
+            showToast(i18n[currentLang].toastDownloaded);
+        }
+    }
+
+    function exportAsHTML() {
+        const css = `body{font-family:Georgia,serif;max-width:720px;margin:40px auto;padding:0 20px;line-height:1.7;color:#222}pre{background:#f4f4f4;padding:12px;border-radius:6px;overflow-x:auto}code{font-family:Consolas,monospace}blockquote{border-left:3px solid #888;padding-left:1em;color:#555}table{border-collapse:collapse}th,td{border:1px solid #ccc;padding:6px 12px}`;
+        const html = `<!DOCTYPE html><html lang="${currentLang}"><head><meta charset="UTF-8"><title>${currentFileName || 'Document'}</title><style>${css}</style></head><body>${viewer.innerHTML}</body></html>`;
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = (currentFileName || 'document').replace(/\.[^.]+$/, '') + '.html'; a.click();
+        URL.revokeObjectURL(url);
+        showToast(i18n[currentLang].toastExported);
+    }
+
+    // =================================================================
+    // INFO / DEMO
+    // =================================================================
+    function loadInfoDocument() {
+        const t = i18n[currentLang];
+        isDemoLoaded = true;
+        currentFileHandle = null;
+        currentFileName = '';
+        editorTextarea.value = t.demoMD;
+        renderMarkdown(t.demoMD);
+        setFooterFilename(t.fileInfoDemo);
+        showViewer();
+        enableFileActions(true);
+    }
+
+    // =================================================================
+    // UI-HILFSFUNKTIONEN
+    // =================================================================
+    function showViewer() {
+        dropzoneWrapper.classList.add('hidden');
+        viewerWrapper.classList.remove('hidden');
+    }
+    function showDropzone() {
+        dropzoneWrapper.classList.remove('hidden');
+        viewerWrapper.classList.add('hidden');
+        editorPanel.classList.remove('open');
+    }
+    function enableFileActions(enabled) {
+        ['btn-edit', 'btn-save', 'btn-export', 'btn-close'].forEach(id => {
+            $(id).disabled = !enabled;
+        });
+    }
+    function showToast(msg) {
+        toast.textContent = msg;
+        toast.classList.add('show');
+        clearTimeout(showToast._t);
+        showToast._t = setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+
+    // =================================================================
+    // DRAG & DROP
+    // =================================================================
+    function setupDragDrop() {
+        dropzone.addEventListener('click', openFilePicker);
+        ['dragover', 'dragenter'].forEach(ev => {
+            dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+        });
+        ['dragleave', 'drop'].forEach(ev => {
+            dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.remove('dragover'); });
+        });
+        dropzone.addEventListener('drop', async e => {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file) await readFile(file);
+        });
+
+        window.addEventListener('dragenter', e => {
+            e.preventDefault(); dragCounter++;
+            if (e.dataTransfer.types.includes('Files')) globalDrop.classList.add('active');
+        });
+        window.addEventListener('dragleave', e => {
+            e.preventDefault(); dragCounter--;
+            if (dragCounter <= 0) { dragCounter = 0; globalDrop.classList.remove('active'); }
+        });
+        window.addEventListener('dragover', e => e.preventDefault());
+        window.addEventListener('drop', async e => {
+            e.preventDefault();
+            dragCounter = 0;
+            globalDrop.classList.remove('active');
+            const file = e.dataTransfer.files[0];
+            if (file) await readFile(file);
+        });
+    }
+
+    // =================================================================
+    // SYNCHRONER SCROLL
+    // =================================================================
+    function setupSyncScroll() {
+        function sync(source, target) {
+            if (scrollSyncing) return;
+            scrollSyncing = true;
+            const sMax = source.scrollHeight - source.clientHeight;
+            const tMax = target.scrollHeight - target.clientHeight;
+            if (sMax > 0 && tMax > 0) target.scrollTop = (source.scrollTop / sMax) * tMax;
+            requestAnimationFrame(() => requestAnimationFrame(() => { scrollSyncing = false; }));
+        }
+        viewerWrapper.addEventListener('scroll', () => {
+            if (editorPanel.classList.contains('open')) sync(viewerWrapper, editorTextarea);
+        }, { passive: true });
+        editorTextarea.addEventListener('scroll', () => {
+            if (editorPanel.classList.contains('open')) sync(editorTextarea, viewerWrapper);
+        }, { passive: true });
+    }
+
+    fileInput.addEventListener('change', async e => {
+        const file = e.target.files[0];
+        if (file) await readFile(file);
+        fileInput.value = '';
+    });
+
+    $('btn-edit').addEventListener('click', () => editorPanel.classList.toggle('open'));
+    $('btn-editor-close').addEventListener('click', () => editorPanel.classList.remove('open'));
+
+    let renderTimeout;
+    editorTextarea.addEventListener('input', () => {
+        clearTimeout(renderTimeout);
+        renderTimeout = setTimeout(() => renderMarkdown(editorTextarea.value), 250);
+    });
+
+    $('btn-open').addEventListener('click', openFilePicker);
+    $('btn-save').addEventListener('click', saveFile);
+    $('btn-export').addEventListener('click', exportAsHTML);
+    $('btn-info').addEventListener('click', loadInfoDocument);
+    $('btn-close').addEventListener('click', () => {
+        currentFileHandle = null;
+        currentFileName = '';
+        currentContent = '';
+        isDemoLoaded = false;
+        editorTextarea.value = '';
+        viewer.innerHTML = '';
+        setFooterFilename('');
+        enableFileActions(false);
+        showDropzone();
+    });
+
+    document.addEventListener('keydown', e => {
+        const ctrl = e.ctrlKey || e.metaKey;
+        if (ctrl && e.key === 'o') { e.preventDefault(); openFilePicker(); }
+        if (ctrl && e.key === 's') { e.preventDefault(); if (currentContent) saveFile(); }
+        if (ctrl && e.key === 'e') { e.preventDefault(); if (currentContent) editorPanel.classList.toggle('open'); }
+        if (e.key === 'Escape') editorPanel.classList.remove('open');
+    });
+
+    // =================================================================
+    // INITIALISIERUNG
+    // =================================================================
+    setupDragDrop();
+    setupSyncScroll();
+    loadSavedTheme();
+    initFooter();
+
+    const initialLang = loadSavedLanguage();
+    applyLanguage(initialLang);
+
+    setFooterFilename('');
+    showDropzone();
+    enableFileActions(false);
+});
+</script>
+</body>
+</html>
