@@ -450,9 +450,15 @@ body.compare-mode .viewer img { max-width: 100%; height: auto; }
 .toast {
     position: fixed; bottom: 40px; left: 50%;
     transform: translateX(-50%) translateY(120%);
+    max-width: min(90vw, 640px);
     background: var(--fg-primary); color: var(--bg-panel);
     padding: 10px 20px; border-radius: 8px;
     font-family: var(--font-ui); font-size: 13px;
+    line-height: 1.4;
+    text-align: left;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    white-space: normal;
     box-shadow: var(--shadow); z-index: 200;
     transition: transform 0.3s ease; pointer-events: none;
 }
@@ -650,7 +656,7 @@ body.compare-mode .viewer img { max-width: 100%; height: auto; }
 // Versionsschema: Jahr.Push.Iteration
 // =================================================================
 
-const APP_VERSION = '26.5.1';
+const APP_VERSION = '26.6.1';
 const APP_AUTHOR_URL = 'https://www.michael-radeck.de';
 
 const i18n = {
@@ -710,7 +716,7 @@ Dieser Viewer dient der **distraktionsfreien Darstellung** von Markdown-Dokument
 - **Live-Editor** mit synchronem bidirektionalen Scroll zwischen Quelltext und Vorschau
 - **Vergleichsmodus** — eine zweite Markdown-Datei laden und beide nebeneinander mit bidirektionalem Scroll-Sync ansehen; der Inhalt wird automatisch skaliert, damit beide Spalten ohne horizontale Scrollbalken die volle Dokumentbreite zeigen
 - **Solo-Scroll** im Vergleichsmodus: Strg/Cmd gedrückt halten und scrollen verschiebt nur die aktive Spalte; beim Loslassen wird der Versatz festgehalten und bei weiterem synchronen Scrollen beibehalten. Der „Sync-Reset"-Button stellt den Gleichlauf wieder her.
-- **Speicherung** zurück in die Originaldatei via *File System Access API*
+- **Speicherung** über den nativen OS-Save-Dialog (*File System Access API*): jeder Speichervorgang erlaubt die freie Wahl von Pfad und Dateiname; der Dialog startet im Ordner der zuletzt geöffneten Datei. Schreibvorgänge laufen atomar — bestehende Dateien bleiben bei einem Fehler unangetastet
 - **HTML-Export** als eigenständiges Dokument
 - **Statusleiste** unten mit Dateiname, Datum, Version und Autorenlink
 
@@ -812,7 +818,7 @@ This viewer provides a **distraction-free presentation** of Markdown documents d
 - **Live editor** with synchronised bidirectional scrolling between source and preview
 - **Compare mode** — load a second Markdown file and view both side-by-side with bidirectional scroll-sync; content is auto-scaled so each pane shows the full document width without horizontal scrollbars
 - **Solo scrolling** in compare mode: hold Ctrl/Cmd while scrolling to move only the active pane; on release the resulting offset is preserved and respected by subsequent synchronised scrolling. The "Reset sync" button restores alignment.
-- **Saving** back to the original file via the *File System Access API*
+- **Saving** through the native OS save dialog (*File System Access API*): every save lets you freely choose path and filename, and opens in the folder of the most recently used file. Writes are atomic — existing files remain untouched if anything fails
 - **HTML export** as a standalone document
 - **Status bar** at the bottom with filename, date, version, and author link
 
@@ -1223,40 +1229,62 @@ waitForLibraries(function() {
         return title || null;
     }
 
+    // Sammelt die Fehler-Namen, die einem bewussten Anwender-Abbruch
+    // (System-Dialog geschlossen, Berechtigung verweigert) entsprechen.
+    // Solche Abbrüche dürfen niemals einen Fehler-Toast auslösen.
+    const SAVE_CANCEL_ERRORS = new Set(['AbortError', 'NotAllowedError', 'SecurityError']);
+
     async function saveFile() {
         const text = editorTextarea.value;
 
-        // Wenn neue Datei ohne Handle: Speicherdialog öffnen
-        if (!currentFileHandle && window.showSaveFilePicker) {
-            // Titel aus erster H1 als Dateinamen-Vorschlag, falls vom Default abweichend
+        // Der Save-Button verhält sich immer wie „Speichern unter":
+        // jeder Speichervorgang öffnet den System-Dialog, sodass Pfad
+        // und Dateiname frei wählbar bleiben. Bisheriges Handle bleibt
+        // erhalten, falls der Anwender den Dialog abbricht.
+        if (window.showSaveFilePicker) {
             let suggestedName = currentFileName || 'document.md';
             const titleFromContent = deriveFilenameFromContent(text);
             if (titleFromContent && titleFromContent !== i18n[currentLang].newFileTitle) {
                 suggestedName = titleFromContent + '.md';
             }
-            try {
-                currentFileHandle = await window.showSaveFilePicker({
-                    suggestedName: suggestedName,
-                    types: [{
-                        description: 'Markdown',
-                        accept: { 'text/markdown': ['.md', '.markdown'] }
-                    }]
-                });
-                currentFileName = currentFileHandle.name;
-            } catch(err) {
-                if (err.name === 'AbortError') return;
-                // Fallback unten
-            }
-        }
 
-        if (currentFileHandle && currentFileHandle.createWritable) {
+            // Dialog möglichst im Ordner der zuletzt geöffneten Datei
+            // starten, damit „Enter" denselben Pfad bedeutet, der Anwender
+            // aber jederzeit frei navigieren kann.
+            const pickerOpts = {
+                suggestedName: suggestedName,
+                types: [{
+                    description: 'Markdown',
+                    accept: { 'text/markdown': ['.md', '.markdown'] }
+                }]
+            };
+            if (currentFileHandle) pickerOpts.startIn = currentFileHandle;
+
+            let handle;
             try {
-                const writable = await currentFileHandle.createWritable();
-                await writable.write(text);
+                handle = await window.showSaveFilePicker(pickerOpts);
+            } catch(err) {
+                if (SAVE_CANCEL_ERRORS.has(err.name)) return;
+                showToast(i18n[currentLang].toastSaveFailed + err.message);
+                return;
+            }
+
+            // Atomares Schreiben: keepExistingData verhindert ein
+            // sofortiges Trunkieren der Zieldatei beim Stream-Open. Bei
+            // Fehlern wird der Stream verworfen, sodass die Originaldatei
+            // nicht als 0-KB-Leiche zurückbleibt.
+            let writable;
+            try {
+                writable = await handle.createWritable({ keepExistingData: true });
+                const bytes = new TextEncoder().encode(text);
+                await writable.write(bytes);
+                await writable.truncate(bytes.byteLength);
                 await writable.close();
+                currentFileHandle = handle;
+                currentFileName = handle.name;
                 isNewFile = false;
                 try {
-                    const file = await currentFileHandle.getFile();
+                    const file = await handle.getFile();
                     const kb = (file.size / 1024).toFixed(1);
                     setFooterFilename(`${currentFileName} · ${kb} KB`);
                 } catch(e) {
@@ -1264,19 +1292,22 @@ waitForLibraries(function() {
                 }
                 showToast(i18n[currentLang].toastSaved);
             } catch(err) {
+                if (writable) { try { await writable.abort(); } catch(_) {} }
+                if (SAVE_CANCEL_ERRORS.has(err.name)) return;
                 showToast(i18n[currentLang].toastSaveFailed + err.message);
             }
-        } else {
-            // Download-Fallback (Firefox/Safari)
-            const blob = new Blob([text], { type: 'text/markdown' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = currentFileName || 'document.md';
-            a.click();
-            URL.revokeObjectURL(url);
-            showToast(i18n[currentLang].toastDownloaded);
+            return;
         }
+
+        // Download-Fallback (Firefox/Safari ohne File System Access API)
+        const blob = new Blob([text], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = currentFileName || 'document.md';
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast(i18n[currentLang].toastDownloaded);
     }
 
     function exportAsHTML() {

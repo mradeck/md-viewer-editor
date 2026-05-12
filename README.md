@@ -1,6 +1,6 @@
 # MD-Viewer
 
-**Aktuelle Version: v26.5.1**
+**Aktuelle Version: v26.6.1**
 
 Single-File Markdown-Betrachter und -Editor mit Drag-&-Drop-Schnittstelle, Live-Editor mit synchronem Scroll, zweisprachiger Oberfläche, HTML→Markdown-Konvertierung beim Einfügen, Vergleichsmodus zweier Dokumente mit synchroner Bildlaufkopplung und freier Solo-Verschiebung sowie mehreren Design-Varianten. Vollständig offline-fähig nach erstem Laden, ohne Build-Schritt, ohne Server, ohne Telemetrie.
 
@@ -32,7 +32,7 @@ Die Anwendung folgt dem Vorbild des [edge-md-viewer](https://github.com/0xedgele
 - **Automatische Inhaltsskalierung im Vergleichsmodus** (kleinere Schrift, umgebrochene Tabellen und Code-Blöcke) für volle Dokumentbreite ohne horizontale Scrollbalken
 - **Solo-Scroll**: Strg/Cmd gedrückt halten und scrollen verschiebt nur die aktive Spalte; der entstandene Versatz wird als proportionaler Anteil gemerkt und bei weiterem synchronen Scrollen beibehalten
 - **„Sync-Reset"-Button** setzt den Versatz beider Spalten auf 0 zurück und richtet die rechte Spalte an der linken aus
-- **Speicherung** zurück in die Originaldatei via [File System Access API](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API), mit Download-Fallback in nicht unterstützenden Browsern
+- **Speicherung** über den nativen OS-Save-Dialog via [File System Access API](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API); jeder Speichervorgang erlaubt die freie Wahl von Pfad und Dateiname und landet komfortabel im Ordner der zuletzt geöffneten Datei (`startIn`). Schreibvorgänge laufen atomar (`keepExistingData: true` + `truncate` + `close`, im Fehlerfall `abort`), sodass bestehende Dateien nicht als 0-Byte-Leichen zurückbleiben; in Browsern ohne File System Access API greift ein Download-Fallback
 - **HTML-Export** als eigenständiges Dokument mit eingebettetem CSS
 - **Mathematik-Rendering** über KaTeX (`$…$` inline, `$$…$$` Block)
 - **Code-Syntaxhervorhebung** über highlight.js

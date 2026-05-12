@@ -7,6 +7,22 @@ Das Projekt folgt einer eigenen Versionierung im Format `Jahr.Push.Iteration` (s
 
 ---
 
+## [26.6.1] – 2026-05-12
+
+Sechster GitHub-Push. Speicherfunktion neu aufgesetzt — beseitigt Datenverlust und Geister-Fehlertoasts.
+
+### Behoben
+- **0-KB-Zerstörung beim Speichern** — `createWritable()` lief ohne `keepExistingData: true` und trunkierte die Zieldatei sofort beim Stream-Open. Schlugen nachgelagert `write()` oder `close()` fehl (typisch bei in einer anderen App geöffneten Dateien, OneDrive-Sync, Antivirus oder abgebrochenen OS-Berechtigungsdialogen), blieb die Originaldatei als 0-Byte-Leiche zurück. Schreibvorgänge laufen jetzt atomar: Stream mit `keepExistingData: true` öffnen, schreiben, auf neue Länge `truncate()`, dann `close()`. Bei Fehlern wird `writable.abort()` aufgerufen — die Originaldatei bleibt unangetastet.
+- **Fehlertoast bei Abbruch des System-Dialogs** — Bisher wurde nur `AbortError` als bewusster Anwender-Abbruch erkannt. Die Browser werfen je nach Plattform und Pfad (z. B. macOS-Berechtigungsdialog, gesperrte Pfade) auch `NotAllowedError` oder `SecurityError`. Diese drei Fehlernamen werden jetzt zentral in `SAVE_CANCEL_ERRORS` zusammengefasst und schweigend ignoriert.
+- **Abgeschnittene Fehlermeldungen im Toast** — Lange Fehlertexte ragten bisher über das Toast-Fenster hinaus. Toast erhält `max-width: min(90vw, 640px)`, `word-break: break-word`, `overflow-wrap: anywhere`, `white-space: normal` und mehrzeilige `line-height: 1.4` — Texte brechen jetzt um, statt rechts am Rand zu verschwinden.
+
+### Geändert
+- **Save-Button öffnet stets den OS-Save-Dialog** — Bisher wurde bei vorhandenem Datei-Handle still in dieselbe Datei zurückgeschrieben. Jetzt wirkt jeder Speichervorgang wie „Speichern unter": der native Systemdialog mit voller Ordnernavigation erscheint, Dateiname und Pfad sind frei wählbar.
+- **`startIn: currentFileHandle`** im Save-Picker, sobald ein Handle existiert. Der Dialog landet im Ordner der zuletzt geöffneten Datei mit deren Namen vorbelegt — Enter überschreibt wie gehabt, der Anwender kann aber jederzeit frei navigieren.
+- Sammel-Konstante `SAVE_CANCEL_ERRORS` definiert oberhalb von `saveFile()`; Fehler-Set wird sowohl im Picker- als auch im Schreib-`catch` einheitlich abgefragt.
+
+---
+
 ## [26.5.1] – 2026-05-12
 
 Fünfter GitHub-Push. Reine UI-Politur.
