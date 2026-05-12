@@ -1,8 +1,8 @@
 # MD-Viewer
 
-**Aktuelle Version: v26.3.1**
+**Aktuelle Version: v26.4.1**
 
-Single-File Markdown-Betrachter und -Editor mit Drag-&-Drop-Schnittstelle, Live-Editor mit synchronem Scroll, zweisprachiger Oberfläche, HTML→Markdown-Konvertierung beim Einfügen und mehreren Design-Varianten. Vollständig offline-fähig nach erstem Laden, ohne Build-Schritt, ohne Server, ohne Telemetrie.
+Single-File Markdown-Betrachter und -Editor mit Drag-&-Drop-Schnittstelle, Live-Editor mit synchronem Scroll, zweisprachiger Oberfläche, HTML→Markdown-Konvertierung beim Einfügen, Vergleichsmodus zweier Dokumente mit synchroner Bildlaufkopplung und freier Solo-Verschiebung sowie mehreren Design-Varianten. Vollständig offline-fähig nach erstem Laden, ohne Build-Schritt, ohne Server, ohne Telemetrie.
 
 ---
 
@@ -28,6 +28,10 @@ Die Anwendung folgt dem Vorbild des [edge-md-viewer](https://github.com/0xedgele
 - **Info-Button** lädt eine zweisprachige Funktionsübersicht als Demo-Dokument
 - **Live-Editor** (Strg+E) mit synchroner Vorschau (250 ms Debounce)
 - **Bidirektionaler Scroll-Sync** zwischen Editor und Vorschau (proportional)
+- **Vergleichsmodus** lädt eine zweite Markdown-Datei und stellt beide Dokumente als 50/50-Split nebeneinander dar; beide Spalten sind bidirektional proportional scroll-synchron, der Editor ist während des Vergleichs deaktiviert
+- **Automatische Inhaltsskalierung im Vergleichsmodus** (kleinere Schrift, umgebrochene Tabellen und Code-Blöcke) für volle Dokumentbreite ohne horizontale Scrollbalken
+- **Solo-Scroll**: Strg/Cmd gedrückt halten und scrollen verschiebt nur die aktive Spalte; der entstandene Versatz wird als proportionaler Anteil gemerkt und bei weiterem synchronen Scrollen beibehalten
+- **„Sync-Reset"-Button** setzt den Versatz beider Spalten auf 0 zurück und richtet die rechte Spalte an der linken aus
 - **Speicherung** zurück in die Originaldatei via [File System Access API](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API), mit Download-Fallback in nicht unterstützenden Browsern
 - **HTML-Export** als eigenständiges Dokument mit eingebettetem CSS
 - **Mathematik-Rendering** über KaTeX (`$…$` inline, `$$…$$` Block)
@@ -37,13 +41,14 @@ Die Anwendung folgt dem Vorbild des [edge-md-viewer](https://github.com/0xedgele
 
 ## Tastenkürzel
 
-| Kürzel       | Funktion                          |
-|--------------|-----------------------------------|
-| `Strg/Cmd+O` | Datei öffnen                      |
-| `Strg/Cmd+N` | Neue Datei anlegen                |
-| `Strg/Cmd+S` | Speichern                         |
-| `Strg/Cmd+E` | Editor öffnen/schließen           |
-| `Esc`        | Editor schließen                  |
+| Kürzel                     | Funktion                                                          |
+|----------------------------|-------------------------------------------------------------------|
+| `Strg/Cmd+O`               | Datei öffnen                                                      |
+| `Strg/Cmd+N`               | Neue Datei anlegen                                                |
+| `Strg/Cmd+S`               | Speichern                                                         |
+| `Strg/Cmd+E`               | Editor öffnen/schließen                                           |
+| `Esc`                      | Editor schließen                                                  |
+| `Strg/Cmd` halten + scroll | Im Vergleichsmodus: nur aktive Spalte scrollen, Versatz festhalten |
 
 ## Versionierungsschema
 

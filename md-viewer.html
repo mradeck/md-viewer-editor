@@ -250,6 +250,58 @@ body {
     transition: background-color 0.3s ease;
 }
 .viewer-wrapper.hidden { display: none; }
+
+/* VERGLEICHSMODUS – zweites Viewer-Panel rechts, beide synchron scrollbar */
+#viewer-wrapper-2 {
+    left: 50%;
+    border-left: 1px solid var(--border);
+}
+body.compare-mode #viewer-wrapper { right: 50%; }
+
+/* Compare-Modus: Inhalte schrumpfen, damit beide Spalten ohne
+   horizontalen Scrollbalken die volle Dokumentbreite zeigen. */
+body.compare-mode #viewer-wrapper,
+body.compare-mode #viewer-wrapper-2 { overflow-x: hidden; }
+body.compare-mode .viewer {
+    max-width: 100%;
+    padding: 36px 22px 64px;
+    font-size: 14px;
+    line-height: 1.55;
+}
+body.compare-mode .viewer h1 { font-size: 1.75em; }
+body.compare-mode .viewer h2 { font-size: 1.35em; }
+body.compare-mode .viewer h3 { font-size: 1.15em; }
+body.compare-mode .viewer h4 { font-size: 1.02em; }
+body.compare-mode .viewer p,
+body.compare-mode .viewer li { overflow-wrap: anywhere; }
+body.compare-mode .viewer pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    overflow-x: hidden;
+    font-size: 0.82em;
+    padding: 10px 14px;
+}
+body.compare-mode .viewer code { overflow-wrap: anywhere; }
+body.compare-mode .viewer table {
+    font-size: 0.82em;
+    table-layout: fixed;
+    width: 100%;
+}
+body.compare-mode .viewer th,
+body.compare-mode .viewer td {
+    padding: 5px 8px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+body.compare-mode .viewer img { max-width: 100%; height: auto; }
+
+/* Aktivzustand für den Vergleichsmodus-Schalter */
+.btn.active {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+}
 .viewer {
     max-width: var(--max-width); margin: 0 auto;
     padding: 64px 32px 96px; color: var(--fg-primary);
@@ -364,12 +416,16 @@ body {
     z-index: 95;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
-.footer-section { display: flex; align-items: center; gap: 6px; }
-.footer-spacer { flex: 1; }
+/* Footer-Sektionen brechen nie um und schrumpfen nicht – nur der
+   Dateiname (eigener flex-Regelsatz) darf wachsen und per Ellipsis kürzen. */
+.footer-section { display: flex; align-items: center; gap: 6px; flex-shrink: 0; white-space: nowrap; }
+.footer-spacer { flex: 0 0 0; min-width: 0; }
 .footer-filename {
     font-family: var(--font-mono);
     font-size: 11px; color: var(--fg-secondary);
-    max-width: 50%;
+    flex: 1 1 auto;
+    min-width: 0;
+    padding-right: 18px;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .footer-filename.empty { color: var(--fg-muted); font-style: italic; font-family: var(--font-ui); }
@@ -469,6 +525,16 @@ body {
         <span class="btn-label" data-i18n="btnClose">Schließen</span>
     </button>
 
+    <button class="btn" id="btn-compare" data-i18n-title="titleCompare" title="Zweite Datei zum Vergleich laden – Bearbeiten ist im Vergleichsmodus deaktiviert" disabled>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="8" height="16" rx="1"/><rect x="13" y="4" width="8" height="16" rx="1"/></svg>
+        <span class="btn-label" data-i18n="btnCompare">Vergleichen</span>
+    </button>
+
+    <button class="btn" id="btn-reset-sync" data-i18n-title="titleResetSync" title="Vertikalen Versatz beider Spalten auf 0 zurücksetzen" disabled>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 14.85-6.85L21 8"/><polyline points="21 3 21 8 16 8"/><path d="M21 12a9 9 0 0 1-14.85 6.85L3 16"/><polyline points="3 21 3 16 8 16"/></svg>
+        <span class="btn-label" data-i18n="btnResetSync">Sync-Reset</span>
+    </button>
+
     <div class="toolbar-spacer"></div>
 
     <select class="theme-select" id="theme-select" data-i18n-title="titleTheme" title="Design-Variante wählen">
@@ -537,6 +603,10 @@ body {
     <article class="viewer" id="viewer"></article>
 </section>
 
+<section class="viewer-wrapper hidden" id="viewer-wrapper-2">
+    <article class="viewer" id="viewer-2"></article>
+</section>
+
 <aside class="editor-panel" id="editor-panel">
     <div class="editor-header">
         <span>
@@ -560,15 +630,16 @@ body {
     <div class="footer-section" id="footer-date">—</div>
     <div class="footer-separator"></div>
     <div class="footer-section">
-        <a class="footer-link" href="https://www.michael-radeck.de" target="_blank" rel="noopener noreferrer">www.michael-radeck.de</a>
+        <a class="footer-link" href="https://www.michael-radeck.de" target="_blank" rel="noopener noreferrer" title="www.michael-radeck.de">michael-radeck.de</a>
     </div>
     <div class="footer-separator"></div>
     <div class="footer-section">
-        <span class="footer-version" id="footer-version" title="Versionsschema: Jahr.Push.Iteration">v26.3.1</span>
+        <span class="footer-version" id="footer-version" title="Versionsschema: Jahr.Push.Iteration">v26.4.1</span>
     </div>
 </footer>
 
 <input type="file" id="file-input" accept=".md,.markdown,.mdown,.mkd,.txt" style="display:none;">
+<input type="file" id="file-input-2" accept=".md,.markdown,.mdown,.mkd,.txt" style="display:none;">
 
 <script>
 // =================================================================
@@ -576,7 +647,7 @@ body {
 // Versionsschema: Jahr.Push.Iteration
 // =================================================================
 
-const APP_VERSION = '26.3.1';
+const APP_VERSION = '26.4.1';
 const APP_AUTHOR_URL = 'https://www.michael-radeck.de';
 
 const i18n = {
@@ -584,12 +655,16 @@ const i18n = {
         brand: 'MD-Viewer',
         btnOpen: 'Öffnen', btnNew: 'Neu', btnEdit: 'Bearbeiten', btnSave: 'Speichern',
         btnExport: 'Export', btnClose: 'Schließen',
+        btnCompare: 'Vergleichen', btnCompareExit: 'Vergleich beenden',
+        btnResetSync: 'Sync-Reset',
         titleOpen: 'Datei öffnen (Strg+O)',
         titleNew: 'Neue Datei erstellen (Strg+N)',
         titleEdit: 'Bearbeitungsmodus umschalten (Strg+E)',
         titleSave: 'Speichern (Strg+S)',
         titleExport: 'Als HTML exportieren',
         titleClose: 'Datei schließen',
+        titleCompare: 'Zweite Datei zum Vergleich laden – Bearbeiten ist im Vergleichsmodus deaktiviert',
+        titleResetSync: 'Vertikalen Versatz beider Spalten auf 0 zurücksetzen. Tipp: Strg gedrückt halten und scrollen → nur die aktive Spalte bewegt sich; nach Loslassen läuft die Synchronisation mit dem neuen Versatz weiter.',
         titleTheme: 'Design-Variante wählen',
         titleInfo: 'Information & Demo anzeigen',
         titleLangDE: 'Deutsch', titleLangEN: 'English',
@@ -630,6 +705,8 @@ Dieser Viewer dient der **distraktionsfreien Darstellung** von Markdown-Dokument
 - **Neu-Button** zur Erstellung leerer Markdown-Dokumente (Strg+N); die erste Überschrift wird beim Speichern als Dateinamen-Vorschlag übernommen
 - **HTML-Paste-Konvertierung** — eingefügter Webseiteninhalt mit Tabellen, Listen und Formatierungen wird automatisch in Markdown übersetzt
 - **Live-Editor** mit synchronem bidirektionalen Scroll zwischen Quelltext und Vorschau
+- **Vergleichsmodus** — eine zweite Markdown-Datei laden und beide nebeneinander mit bidirektionalem Scroll-Sync ansehen; der Inhalt wird automatisch skaliert, damit beide Spalten ohne horizontale Scrollbalken die volle Dokumentbreite zeigen
+- **Solo-Scroll** im Vergleichsmodus: Strg/Cmd gedrückt halten und scrollen verschiebt nur die aktive Spalte; beim Loslassen wird der Versatz festgehalten und bei weiterem synchronen Scrollen beibehalten. Der „Sync-Reset"-Button stellt den Gleichlauf wieder her.
 - **Speicherung** zurück in die Originaldatei via *File System Access API*
 - **HTML-Export** als eigenständiges Dokument
 - **Statusleiste** unten mit Dateiname, Datum, Version und Autorenlink
@@ -680,12 +757,16 @@ def fibonacci(n: int) -> int:
         brand: 'MD-Viewer',
         btnOpen: 'Open', btnNew: 'New', btnEdit: 'Edit', btnSave: 'Save',
         btnExport: 'Export', btnClose: 'Close',
+        btnCompare: 'Compare', btnCompareExit: 'Exit compare',
+        btnResetSync: 'Reset sync',
         titleOpen: 'Open file (Ctrl+O)',
         titleNew: 'Create new file (Ctrl+N)',
         titleEdit: 'Toggle edit mode (Ctrl+E)',
         titleSave: 'Save (Ctrl+S)',
         titleExport: 'Export as HTML',
         titleClose: 'Close file',
+        titleCompare: 'Load a second file for side-by-side comparison – editing is disabled in compare mode',
+        titleResetSync: 'Reset the vertical offset between both panes to 0. Tip: hold Ctrl while scrolling to move only the active pane; sync resumes with the new offset on release.',
         titleTheme: 'Select design variant',
         titleInfo: 'Show information & demo',
         titleLangDE: 'German', titleLangEN: 'English',
@@ -726,6 +807,8 @@ This viewer provides a **distraction-free presentation** of Markdown documents d
 - **New button** for creating empty Markdown documents (Ctrl+N); the first heading becomes the suggested filename when saving
 - **HTML paste conversion** — web content with tables, lists, and formatting is automatically translated into Markdown when pasted
 - **Live editor** with synchronised bidirectional scrolling between source and preview
+- **Compare mode** — load a second Markdown file and view both side-by-side with bidirectional scroll-sync; content is auto-scaled so each pane shows the full document width without horizontal scrollbars
+- **Solo scrolling** in compare mode: hold Ctrl/Cmd while scrolling to move only the active pane; on release the resulting offset is preserved and respected by subsequent synchronised scrolling. The "Reset sync" button restores alignment.
 - **Saving** back to the original file via the *File System Access API*
 - **HTML export** as a standalone document
 - **Status bar** at the bottom with filename, date, version, and author link
@@ -802,9 +885,12 @@ waitForLibraries(function() {
     const dropzoneWrapper = $('dropzone-wrapper');
     const viewerWrapper = $('viewer-wrapper');
     const viewer = $('viewer');
+    const viewerWrapper2 = $('viewer-wrapper-2');
+    const viewer2 = $('viewer-2');
     const editorPanel = $('editor-panel');
     const editorTextarea = $('editor-textarea');
     const fileInput = $('file-input');
+    const fileInput2 = $('file-input-2');
     const themeSelect = $('theme-select');
     const toast = $('toast');
     const globalDrop = $('global-drop');
@@ -821,6 +907,12 @@ waitForLibraries(function() {
     let dragCounter = 0;
     let scrollSyncing = false;
     let renderTimeout;
+    let compareMode = false;
+    let secondFileName = '';
+    // Versatz beider Spalten als Anteil (f2 = f1 + compareOffsetFraction)
+    let compareOffsetFraction = 0;
+    // Strg/Cmd gehalten → aktive Spalte scrollt solo, Sync ausgesetzt
+    let ctrlSoloScroll = false;
 
     if (window.marked) {
         marked.setOptions({
@@ -888,6 +980,12 @@ waitForLibraries(function() {
 
         editorTextarea.placeholder = t.editorHeader + '...';
         updateFooterDate();
+
+        // Compare-Button-Label dem aktiven Modus anpassen
+        if (compareMode) {
+            const btnC = $('btn-compare');
+            if (btnC) btnC.querySelector('.btn-label').textContent = t.btnCompareExit;
+        }
 
         if (isDemoLoaded) {
             editorTextarea.value = t.demoMD;
@@ -961,12 +1059,121 @@ waitForLibraries(function() {
     }
 
     // =================================================================
+    // VERGLEICHSMODUS – zweite Datei laden, Side-by-Side anzeigen
+    //
+    // Das zweite Markdown wird in #viewer-2 gerendert und parallel zum
+    // ersten Viewer angezeigt. Beide Spalten sind proportional synchron
+    // scrollbar. Im Vergleichsmodus ist der Editor deaktiviert; ein
+    // erneuter Klick auf den Vergleichen-Knopf beendet den Modus.
+    // =================================================================
+    function renderSecondMarkdown(text) {
+        if (typeof window.marked === 'undefined' || typeof window.DOMPurify === 'undefined') {
+            viewer2.innerHTML = '<p style="color:#c33;font-family:sans-serif">' + i18n[currentLang].renderError + '</p>';
+            return;
+        }
+        try {
+            const html = marked.parse(text);
+            const clean = DOMPurify.sanitize(html, {
+                ADD_TAGS: ['math', 'mrow', 'mi', 'mn', 'mo', 'msup', 'msub', 'mfrac'],
+                ADD_ATTR: ['class', 'data-*']
+            });
+            viewer2.innerHTML = clean;
+            if (window.renderMathInElement) {
+                renderMathInElement(viewer2, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$',  right: '$',  display: false},
+                        {left: '\\(', right: '\\)', display: false},
+                        {left: '\\[', right: '\\]', display: true}
+                    ],
+                    throwOnError: false
+                });
+            }
+            if (window.hljs) {
+                viewer2.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
+            }
+        } catch(err) {
+            viewer2.innerHTML = `<p style="color:red">Rendering error: ${err.message}</p>`;
+        }
+    }
+
+    async function openCompareFilePicker() {
+        // Toggle: zweiter Klick beendet den Vergleich
+        if (compareMode) { exitCompareMode(); return; }
+        if (!currentContent) return;
+        if (window.showOpenFilePicker) {
+            try {
+                const [handle] = await window.showOpenFilePicker({
+                    types: [{
+                        description: 'Markdown',
+                        accept: { 'text/markdown': ['.md', '.markdown', '.mdown', '.mkd', '.txt'] }
+                    }]
+                });
+                const file = await handle.getFile();
+                await loadSecondFile(file);
+            } catch(err) {
+                if (err.name !== 'AbortError') console.error(err);
+            }
+        } else {
+            fileInput2.click();
+        }
+    }
+
+    async function loadSecondFile(file) {
+        if (!ACCEPTED_EXT.test(file.name)) {
+            showToast(i18n[currentLang].toastUnsupported + file.name); return;
+        }
+        const text = await file.text();
+        secondFileName = file.name;
+        renderSecondMarkdown(text);
+        enterCompareMode();
+    }
+
+    function enterCompareMode() {
+        compareMode = true;
+        compareOffsetFraction = 0;
+        ctrlSoloScroll = false;
+        document.body.classList.add('compare-mode');
+        viewerWrapper2.classList.remove('hidden');
+        editorPanel.classList.remove('open');
+        $('btn-edit').disabled = true;
+        $('btn-reset-sync').disabled = false;
+        const btnC = $('btn-compare');
+        btnC.classList.add('active');
+        btnC.querySelector('.btn-label').textContent = i18n[currentLang].btnCompareExit;
+        // Fußzeile: beide Dateinamen zeigen
+        const left = currentFileName || (isDemoLoaded ? i18n[currentLang].fileInfoDemo : '');
+        setFooterFilename(`${left}  ↔  ${secondFileName}`);
+    }
+
+    function exitCompareMode() {
+        compareMode = false;
+        compareOffsetFraction = 0;
+        ctrlSoloScroll = false;
+        document.body.classList.remove('compare-mode');
+        viewerWrapper2.classList.add('hidden');
+        viewer2.innerHTML = '';
+        secondFileName = '';
+        const btnC = $('btn-compare');
+        btnC.classList.remove('active');
+        btnC.querySelector('.btn-label').textContent = i18n[currentLang].btnCompare;
+        // Edit-Knopf wieder freigeben, sofern eine erste Datei geladen ist
+        $('btn-edit').disabled = !currentContent;
+        $('btn-reset-sync').disabled = true;
+        // Fußzeile auf erste Datei zurücksetzen
+        if (currentFileName) setFooterFilename(currentFileName);
+        else if (isDemoLoaded) setFooterFilename(i18n[currentLang].fileInfoDemo);
+        else setFooterFilename('');
+    }
+
+    // =================================================================
     // DATEI EINLESEN / SPEICHERN / EXPORT
     // =================================================================
     async function readFile(file) {
         if (!ACCEPTED_EXT.test(file.name)) {
             showToast(i18n[currentLang].toastUnsupported + file.name); return;
         }
+        if (compareMode) exitCompareMode();
         currentFileName = file.name;
         isDemoLoaded = false;
         isNewFile = false;
@@ -1086,6 +1293,7 @@ waitForLibraries(function() {
     // INFO / DEMO
     // =================================================================
     function loadInfoDocument() {
+        if (compareMode) exitCompareMode();
         const t = i18n[currentLang];
         isDemoLoaded = true;
         isNewFile = false;
@@ -1102,6 +1310,7 @@ waitForLibraries(function() {
     // NEU: leeres Dokument erstellen
     // =================================================================
     function newFile() {
+        if (compareMode) exitCompareMode();
         const t = i18n[currentLang];
         isDemoLoaded = false;
         isNewFile = true;
@@ -1191,9 +1400,11 @@ waitForLibraries(function() {
         editorPanel.classList.remove('open');
     }
     function enableFileActions(enabled) {
-        ['btn-edit', 'btn-save', 'btn-export', 'btn-close'].forEach(id => {
+        ['btn-edit', 'btn-save', 'btn-export', 'btn-close', 'btn-compare'].forEach(id => {
             $(id).disabled = !enabled;
         });
+        // Bearbeiten bleibt im Vergleichsmodus deaktiviert
+        if (enabled && compareMode) $('btn-edit').disabled = true;
     }
     function showToast(msg) {
         toast.textContent = msg;
@@ -1239,28 +1450,110 @@ waitForLibraries(function() {
 
     // =================================================================
     // SYNCHRONER SCROLL
+    //
+    // Einfache proportionale Kopplung: Quelle und Ziel werden auf ihre
+    // jeweiligen scrollbaren Höhen normiert.
+    //
+    // Im Vergleichsmodus zusätzlich:
+    //   • Strg/Cmd gehalten → aktive Spalte scrollt solo, Sync ausgesetzt.
+    //   • Beim Loslassen wird der entstandene Versatz (compareOffsetFraction)
+    //     gemerkt; weitere Scroll-Vorgänge respektieren diesen Versatz.
     // =================================================================
+    function recomputeCompareOffset() {
+        const max1 = viewerWrapper.scrollHeight - viewerWrapper.clientHeight;
+        const max2 = viewerWrapper2.scrollHeight - viewerWrapper2.clientHeight;
+        if (max1 > 0 && max2 > 0) {
+            compareOffsetFraction = (viewerWrapper2.scrollTop / max2) - (viewerWrapper.scrollTop / max1);
+        }
+    }
+
+    function resetCompareSync() {
+        if (!compareMode) return;
+        compareOffsetFraction = 0;
+        const max1 = viewerWrapper.scrollHeight - viewerWrapper.clientHeight;
+        const max2 = viewerWrapper2.scrollHeight - viewerWrapper2.clientHeight;
+        if (max1 > 0 && max2 > 0) {
+            scrollSyncing = true;
+            viewerWrapper2.scrollTop = (viewerWrapper.scrollTop / max1) * max2;
+            requestAnimationFrame(() => requestAnimationFrame(() => { scrollSyncing = false; }));
+        }
+    }
+
     function setupSyncScroll() {
-        function sync(source, target) {
+        function sync(source, target, sourceIsLeft) {
             if (scrollSyncing) return;
+            if (compareMode && ctrlSoloScroll) return;
             scrollSyncing = true;
             const sMax = source.scrollHeight - source.clientHeight;
             const tMax = target.scrollHeight - target.clientHeight;
-            if (sMax > 0 && tMax > 0) target.scrollTop = (source.scrollTop / sMax) * tMax;
+            if (sMax > 0 && tMax > 0) {
+                let fTarget = source.scrollTop / sMax;
+                if (compareMode && sourceIsLeft !== undefined) {
+                    fTarget = sourceIsLeft
+                        ? fTarget + compareOffsetFraction
+                        : fTarget - compareOffsetFraction;
+                    fTarget = Math.max(0, Math.min(1, fTarget));
+                }
+                target.scrollTop = fTarget * tMax;
+            }
             requestAnimationFrame(() => requestAnimationFrame(() => { scrollSyncing = false; }));
         }
         viewerWrapper.addEventListener('scroll', () => {
-            if (editorPanel.classList.contains('open')) sync(viewerWrapper, editorTextarea);
+            if (compareMode) sync(viewerWrapper, viewerWrapper2, true);
+            else if (editorPanel.classList.contains('open')) sync(viewerWrapper, editorTextarea);
         }, { passive: true });
         editorTextarea.addEventListener('scroll', () => {
             if (editorPanel.classList.contains('open')) sync(editorTextarea, viewerWrapper);
         }, { passive: true });
+        viewerWrapper2.addEventListener('scroll', () => {
+            if (compareMode) sync(viewerWrapper2, viewerWrapper, false);
+        }, { passive: true });
+
+        // Strg+Mausrad: Browser-Zoom unterbinden, stattdessen Spalte
+        // einzeln scrollen (Solo-Scroll greift dann via Sync-Skip).
+        [viewerWrapper, viewerWrapper2].forEach(el => {
+            el.addEventListener('wheel', e => {
+                if (compareMode && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    el.scrollTop += e.deltaY;
+                }
+            }, { passive: false });
+        });
+    }
+
+    // Strg/Cmd-Tracking: solange gedrückt → Solo-Scroll in einer Spalte.
+    // Beim Loslassen wird der Versatz festgehalten.
+    function setupSoloScrollKeyTracking() {
+        document.addEventListener('keydown', e => {
+            if (compareMode && (e.key === 'Control' || e.key === 'Meta')) {
+                ctrlSoloScroll = true;
+            }
+        });
+        document.addEventListener('keyup', e => {
+            if (compareMode && (e.key === 'Control' || e.key === 'Meta')) {
+                ctrlSoloScroll = false;
+                recomputeCompareOffset();
+            }
+        });
+        // Schutz gegen hängenden Solo-State (Fenster verliert Fokus o. Ä.)
+        window.addEventListener('blur', () => {
+            if (ctrlSoloScroll) {
+                ctrlSoloScroll = false;
+                if (compareMode) recomputeCompareOffset();
+            }
+        });
     }
 
     fileInput.addEventListener('change', async e => {
         const file = e.target.files[0];
         if (file) await readFile(file);
         fileInput.value = '';
+    });
+
+    fileInput2.addEventListener('change', async e => {
+        const file = e.target.files[0];
+        if (file) await loadSecondFile(file);
+        fileInput2.value = '';
     });
 
     $('btn-edit').addEventListener('click', () => editorPanel.classList.toggle('open'));
@@ -1281,7 +1574,10 @@ waitForLibraries(function() {
     $('btn-save').addEventListener('click', saveFile);
     $('btn-export').addEventListener('click', exportAsHTML);
     $('btn-info').addEventListener('click', loadInfoDocument);
+    $('btn-compare').addEventListener('click', openCompareFilePicker);
+    $('btn-reset-sync').addEventListener('click', resetCompareSync);
     $('btn-close').addEventListener('click', () => {
+        if (compareMode) exitCompareMode();
         currentFileHandle = null;
         currentFileName = '';
         currentContent = '';
@@ -1299,13 +1595,14 @@ waitForLibraries(function() {
         if (ctrl && e.key === 'o') { e.preventDefault(); openFilePicker(); }
         if (ctrl && e.key === 'n') { e.preventDefault(); newFile(); }
         if (ctrl && e.key === 's') { e.preventDefault(); if (currentContent) saveFile(); }
-        if (ctrl && e.key === 'e') { e.preventDefault(); if (currentContent) editorPanel.classList.toggle('open'); }
+        if (ctrl && e.key === 'e') { e.preventDefault(); if (currentContent && !compareMode) editorPanel.classList.toggle('open'); }
         if (e.key === 'Escape') editorPanel.classList.remove('open');
     });
 
     // INITIALISIERUNG
     setupDragDrop();
     setupSyncScroll();
+    setupSoloScrollKeyTracking();
     setupHTMLPaste();
     loadSavedTheme();
     initFooter();

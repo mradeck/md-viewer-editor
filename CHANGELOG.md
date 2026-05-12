@@ -7,6 +7,35 @@ Das Projekt folgt einer eigenen Versionierung im Format `Jahr.Push.Iteration` (s
 
 ---
 
+## [26.4.1] – 2026-05-12
+
+Vierter GitHub-Push. Konsolidiert die lokalen Iterationen `26.3.2` – `26.3.6` (Vergleichsmodus inklusive Inhaltsskalierung, Solo-Scroll mit Versatz-Speicher, Sync-Reset, überarbeitete Statusleiste) sowie einen vorgelagerten reinen Infrastruktur-Commit zum Pages-Workflow.
+
+### Hinzugefügt
+- **Vergleichsmodus** — Zweiter Toolbar-Button „Vergleichen" / „Compare" lädt eine zweite Markdown-Datei und stellt beide Dokumente als 50/50-Split nebeneinander dar. Beide Spalten sind bidirektional proportional scroll-synchron. Im Vergleichsmodus ist der Editor deaktiviert und das Editor-Panel wird automatisch geschlossen.
+- **Solo-Scroll mit Strg/Cmd** — Solange Strg (bzw. Cmd auf macOS) gehalten wird, scrollt nur die aktive Spalte. Greift für Klick auf die Scrollbar, Drag des Scrollbar-Thumbs, Mausrad und Pfeiltasten. Beim Loslassen wird der entstandene Versatz als proportionaler Anteil (`compareOffsetFraction`) festgehalten; weitere Scroll-Vorgänge respektieren diesen Versatz.
+- **„Sync-Reset"-Button** rechts vom Vergleichen-Button setzt den Versatz beider Spalten auf 0 zurück und richtet die rechte Spalte an der linken aus.
+- **Automatische Inhaltsskalierung im Vergleichsmodus** — Grundschrift, Überschriften (H1–H4), Tabellen (`table-layout: fixed`, Zellumbrüche per `overflow-wrap: anywhere`) und Code-Blöcke (`white-space: pre-wrap`) werden so verkleinert bzw. umgebrochen, dass beide Spalten die volle Dokumentbreite ohne horizontale Scrollbalken anzeigen.
+- Strg+Mausrad-Abfang innerhalb der Vergleichsspalten unterbindet den Browser-Zoom und scrollt stattdessen die aktive Spalte.
+
+### Geändert
+- **Statusleisten-Layout** überarbeitet: Der Dateiname-Bereich flutet jetzt den verfügbaren Mittelplatz (`flex: 1 1 auto` mit `min-width: 0` statt `max-width: 50%`) und kürzt erst per Ellipsis ab, wenn der Platz tatsächlich knapp wird. `padding-right: 18px` gewährleistet einen klaren Mindestabstand zu den Rechts-Infos.
+- **Rechts-Sektionen** (Datum, Autorenlink, Versions-Badge) erhalten `flex-shrink: 0` und `white-space: nowrap` — sie brechen und schrumpfen unter keinen Umständen.
+- **Autorenlink** zeigt verkürzt „michael-radeck.de"; `href` bleibt voll auf `https://www.michael-radeck.de`, der Tooltip führt die vollständige Adresse mit.
+- **Fußzeile im Vergleichsmodus** zeigt beide Dateinamen mit „↔"-Trenner.
+- Eingebauter Info-Text (DE/EN) ergänzt um Vergleichsmodus und Solo-Scroll.
+
+### Technisch
+- Strg/Cmd-Tracking via globaler `keydown`/`keyup`-Listener, abgesichert mit `window.blur`-Listener gegen hängenden Solo-Zustand bei Fokusverlust.
+- Versatz wird als proportionaler Bruchteil gespeichert und überlebt damit Änderungen der Fenstergröße ohne Drift.
+- Bidirektionalität: Der Versatz wird beim Scrollen der rechten Spalte mit umgekehrtem Vorzeichen angewendet.
+- HTML-Strukturanpassung: Zweites Viewer-Wrapper-Element (`#viewer-wrapper-2`) mit identischem Markdown-Render-Pfad (`renderSecondMarkdown`) inklusive KaTeX und highlight.js.
+
+### Infrastruktur
+- `actions/configure-pages` im Pages-Workflow mit `enablement: true` gestartet, damit das Deploy in einem geforkten Repository nicht am fehlenden Pages-Site-Setup scheitert (vorgelagerter Commit, ohne eigenen Versions-Bump).
+
+---
+
 ## [26.3.1] – 2026-05-11
 
 Dritter GitHub-Push.
@@ -85,5 +114,5 @@ Initiale Veröffentlichung mit vollständigem Funktionsumfang.
 
 ## Erwartete Folgeversionen
 
-- **26.4.x** — nächster GitHub-Push
+- **26.5.x** — nächster GitHub-Push
 - **27.x.x** — Versionssprung mit Jahreswechsel
