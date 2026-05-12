@@ -1,6 +1,6 @@
 # MD-Viewer
 
-**Aktuelle Version: v26.4.1**
+**Aktuelle Version: v26.5.1**
 
 Single-File Markdown-Betrachter und -Editor mit Drag-&-Drop-Schnittstelle, Live-Editor mit synchronem Scroll, zweisprachiger Oberfläche, HTML→Markdown-Konvertierung beim Einfügen, Vergleichsmodus zweier Dokumente mit synchroner Bildlaufkopplung und freier Solo-Verschiebung sowie mehreren Design-Varianten. Vollständig offline-fähig nach erstem Laden, ohne Build-Schritt, ohne Server, ohne Telemetrie.
 

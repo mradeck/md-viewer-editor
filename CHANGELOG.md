@@ -7,6 +7,15 @@ Das Projekt folgt einer eigenen Versionierung im Format `Jahr.Push.Iteration` (s
 
 ---
 
+## [26.5.1] – 2026-05-12
+
+Fünfter GitHub-Push. Reine UI-Politur.
+
+### Hinzugefügt
+- **Browsertab-Favicon** als Inline-SVG via `data:`-URL: 32 × 32 px, Akzentfarbe (`#b8632f`) als abgerundeter Hintergrund mit weißem „M" in Inter Bold. Greift den Brand-Mark der Toolbar visuell auf und bleibt durch die Inline-Einbettung mit dem Single-File-Prinzip konform — kein zusätzliches Asset im Repository, funktioniert auch beim lokalen Doppelklick auf die Datei.
+
+---
+
 ## [26.4.1] – 2026-05-12
 
 Vierter GitHub-Push. Konsolidiert die lokalen Iterationen `26.3.2` – `26.3.6` (Vergleichsmodus inklusive Inhaltsskalierung, Solo-Scroll mit Versatz-Speicher, Sync-Reset, überarbeitete Statusleiste) sowie einen vorgelagerten reinen Infrastruktur-Commit zum Pages-Workflow.
@@ -114,5 +123,5 @@ Initiale Veröffentlichung mit vollständigem Funktionsumfang.
 
 ## Erwartete Folgeversionen
 
-- **26.5.x** — nächster GitHub-Push
+- **26.6.x** — nächster GitHub-Push
 - **27.x.x** — Versionssprung mit Jahreswechsel
